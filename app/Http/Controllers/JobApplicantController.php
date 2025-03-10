@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use App\Models\JobPosting;
 use App\Models\JobCategory;
 use App\Models\JobLocation;
@@ -9,6 +10,8 @@ use Illuminate\Http\Request;
 use App\Models\JobApplication;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ApplicationConfirmation;
 
 class JobApplicantController extends Controller
 {
@@ -292,6 +295,18 @@ class JobApplicantController extends Controller
             
             // Increment application count for the job posting
             JobPosting::where('id', $request->job_posting_id)->increment('applications_count');
+
+            // Get the job posting details
+            $jobPosting = JobPosting::find($request->job_posting_id);
+
+            // Send confirmation email
+            try {
+                Mail::to($application->email)
+                    ->send(new ApplicationConfirmation($application, $jobPosting));
+            } catch (\Exception $e) {
+                // Log the error but don't prevent the application from being submitted
+                Log::error('Failed to send application confirmation email: ' . $e->getMessage());
+            }
             
             // Redirect with success message
             return redirect()->route('careers', $application->id)
