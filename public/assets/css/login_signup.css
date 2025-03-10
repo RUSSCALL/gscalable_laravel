@@ -1,0 +1,323 @@
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* GST-specific colors based on images */
+        :root {
+            --gst-dark-blue: #1a2634;
+            --gst-orange: #ff8000;
+            --gst-light-gray: #f5f5f5;
+            --gst-text-white: #ffffff;
+            --gst-white: #ffffff;
+        }
+
+        body {
+            font-family: "Open Sans", sans-serif;
+        }
+
+        /* General styles with unique classes */
+        .gst_login_container {
+            display: flex;
+            min-height: 100vh;
+            font-family: "Open Sans", sans-serif;
+        }
+
+        .gst_login_form_section {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 500px;
+            background-color: #444444;
+        }
+
+        .gst_login_image_section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background-color: #1a2634;
+        }
+        
+        .gst_login_image_overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .gst_login_image_overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* Logo styles */
+        .gst_login_logo {
+            margin-bottom: 3rem;
+        }
+
+        .gst_login_logo img {
+            height: 60px;
+            width: auto;
+        }
+
+        /* Form elements */
+        .gst_login_heading {
+            margin-bottom: 1.5rem;
+        }
+
+        .gst_login_heading h1 {
+            font-size: 1.8rem;
+            color: var(--gst-white);
+            margin-bottom: 0.5rem;
+        }
+
+        .gst_login_heading p {
+            color: var(--gst-text-white);
+        }
+
+        .gst_login_form_group {
+            margin-bottom: 1.5rem;
+        }
+
+        .gst_login_label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--gst-text-white);
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .gst_login_label::after {
+            content: "";
+            display: block;
+            width: 100%;
+            height: 1px;
+            background-color: var(--gst-orange);
+            margin-top: 0.5rem;
+        }
+
+        .gst_login_input {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid #e1e1e1;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+
+        .gst_login_input:focus {
+            outline: none;
+            border-color: var(--gst-orange);
+        }
+
+        .gst_login_password_input_wrapper {
+            position: relative;
+        }
+
+        .gst_login_eye_icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #999;
+        }
+
+        .gst_login_button {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--gst-orange);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .gst_login_button:hover {
+            background-color: #e67300;
+        }
+
+        .gst_login_divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--gst-text-white);
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .gst_login_divider::before,
+        .gst_login_divider::after {
+            content: "";
+            display: inline-block;
+            width: 40%;
+            height: 1px;
+            background-color: var(--gst-orange);
+            position: absolute;
+            top: 50%;
+        }
+
+        .gst_login_divider::before {
+            left: 0;
+        }
+
+        .gst_login_divider::after {
+            right: 0;
+        }
+
+        .gst_login_social_buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .gst_login_social_button {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #e1e1e1;
+            border-radius: 4px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .gst_login_social_button:hover {
+            background-color: #f5f5f5;
+        }
+
+        .gst_login_social_button img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .gst_login_footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--gst-text-white);
+        }
+
+        .gst_login_footer a {
+            color: var(--gst-orange);
+            text-decoration: none;
+        }
+
+        .gst_login_footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .gst_login_container {
+                flex-direction: column;
+            }
+            
+            .gst_login_form_section {
+                max-width: 100%;
+                order: 2;
+            }
+            
+            .gst_login_image_section {
+                min-height: 200px;
+                order: 1;
+            }
+        }
+
+        /* Error sytling */
+
+        .gst-form-error-message {
+            display: block;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            padding-left: 0.25rem;
+            border-left: 3px solid #dc3545;
+            animation: errorFadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes errorFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        /* success messages */
+
+        .gst-success-alert {
+            display: flex;
+            align-items: center;
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            position: relative;
+            border-left: 4px solid #198754;
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        .gst-success-alert-icon {
+            flex-shrink: 0;
+            margin-right: 12px;
+            color: #198754;
+        }
+        
+        .gst-success-alert-content {
+            flex-grow: 1;
+        }
+        
+        .gst-success-alert-content p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .gst-success-alert-close {
+            background: none;
+            border: none;
+            color: #0f5132;
+            cursor: pointer;
+            padding: 4px;
+            margin-left: 12px;
+            line-height: 0;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .gst-success-alert-close:hover {
+            opacity: 1;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
