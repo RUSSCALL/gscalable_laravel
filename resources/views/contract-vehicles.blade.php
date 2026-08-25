@@ -71,8 +71,8 @@
             <p>GST proudly supports federal agencies and private-sector leaders under the contract vehicles above, delivering cybersecurity and IT services to the following organizations.</p>
         </div>
 
-        <div class="row partners-grid">
-            <div class="col-lg-4 col-md-6">
+        <div class="partners-grid">
+            <div class="partner-col">
                 <div class="partner-card">
                     <div class="partner-logo-wrap">
                         <img src="{{ asset('assets/img/partners/dhs.png') }}" alt="Department of Homeland Security" loading="lazy">
@@ -80,7 +80,7 @@
                     <p class="partner-name">Department of Homeland Security</p>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6">
+            <div class="partner-col">
                 <div class="partner-card">
                     <div class="partner-logo-wrap">
                         <img src="{{ asset('assets/img/partners/uscg.png') }}" alt="United States Coast Guard" loading="lazy">
@@ -88,7 +88,7 @@
                     <p class="partner-name">U.S. Coast Guard</p>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6">
+            <div class="partner-col">
                 <div class="partner-card">
                     <div class="partner-logo-wrap">
                         <img src="{{ asset('assets/img/partners/usaf.png') }}" alt="United States Air Force" loading="lazy">
@@ -96,7 +96,7 @@
                     <p class="partner-name">U.S. Air Force</p>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6">
+            <div class="partner-col">
                 <div class="partner-card">
                     <div class="partner-logo-wrap">
                         <img src="{{ asset('assets/img/partners/education.png') }}" alt="Department of Education" loading="lazy">
@@ -104,7 +104,7 @@
                     <p class="partner-name">Department of Education</p>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6">
+            <div class="partner-col">
                 <div class="partner-card">
                     <div class="partner-logo-wrap">
                         <img src="{{ asset('assets/img/partners/va.png') }}" alt="Department of Veterans Affairs" loading="lazy">
@@ -112,7 +112,7 @@
                     <p class="partner-name">Department of Veterans Affairs</p>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6">
+            <div class="partner-col">
                 <div class="partner-card">
                     <div class="partner-logo-wrap">
                         <img src="{{ asset('assets/img/partners/cisco.png') }}" alt="Cisco" loading="lazy">
