@@ -27,6 +27,14 @@ Route::get('/contract_vehicles' , function() {
     return view('contract-vehicles');
 })->name('contract_vehicles');
 
+Route::get('/privacy', function() {
+    return view('privacy');
+})->name('privacy');
+
+Route::get('/terms', function() {
+    return view('terms');
+})->name('terms');
+
 
 
 Route::get('/auth_redirect' , [AuthRedirectsController::class, 'index'])->middleware(['auth' , 'verified'])->name('auth.redirect');

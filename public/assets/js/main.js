@@ -63,19 +63,27 @@ function shareJob() {
 
   /**
    * Navbar links active state on scroll
+   * Activates whichever link's section top was most recently scrolled past,
+   * so there is always exactly one active link with no dead zone between sections.
    */
   let navbarlinks = select('#navbar .scrollto', true)
   const navbarlinksActive = () => {
     let position = window.scrollY + 200
+    let current = null
     navbarlinks.forEach(navbarlink => {
       if (!navbarlink.hash) return
       let section = select(navbarlink.hash)
       if (!section) return
-      if (position >= section.offsetTop && position <= (section.offsetTop + section.offsetHeight)) {
-        navbarlink.classList.add('active')
-      } else {
-        navbarlink.classList.remove('active')
+      if (section.offsetTop <= position) {
+        if (!current || section.offsetTop > current.offsetTop) {
+          current = section
+          current.navbarlink = navbarlink
+        }
       }
+    })
+    navbarlinks.forEach(navbarlink => {
+      if (!navbarlink.hash) return
+      navbarlink.classList.toggle('active', current && current.navbarlink === navbarlink)
     })
   }
   window.addEventListener('load', navbarlinksActive)
@@ -134,10 +142,35 @@ function shareJob() {
   /**
    * Mobile nav toggle
    */
+  function setMobileNavIcon(toggleEl, isOpen) {
+    if (!toggleEl) return
+    let icon = toggleEl.querySelector('i') || toggleEl
+    icon.classList.toggle('bi-list', !isOpen)
+    icon.classList.toggle('bi-x', isOpen)
+    toggleEl.setAttribute('aria-expanded', isOpen ? 'true' : 'false')
+  }
+
+  function closeMobileNav() {
+    let navbar = select('#navbar')
+    if (navbar && navbar.classList.contains('navbar-mobile')) {
+      navbar.classList.remove('navbar-mobile')
+      setMobileNavIcon(select('.mobile-nav-toggle'), false)
+    }
+  }
+
   on('click', '.mobile-nav-toggle', function(e) {
-    select('#navbar').classList.toggle('navbar-mobile')
-    this.classList.toggle('bi-list')
-    this.classList.toggle('bi-x')
+    let navbar = select('#navbar')
+    let isOpen = navbar.classList.toggle('navbar-mobile')
+    setMobileNavIcon(this, isOpen)
+  })
+
+  /**
+   * Close mobile nav on Escape
+   */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeMobileNav()
+    }
   })
 
   /**
@@ -157,13 +190,7 @@ function shareJob() {
     if (select(this.hash)) {
       e.preventDefault()
 
-      let navbar = select('#navbar')
-      if (navbar.classList.contains('navbar-mobile')) {
-        navbar.classList.remove('navbar-mobile')
-        let navbarToggle = select('.mobile-nav-toggle')
-        navbarToggle.classList.toggle('bi-list')
-        navbarToggle.classList.toggle('bi-x')
-      }
+      closeMobileNav()
       scrollto(this.hash)
     }
   }, true)
@@ -194,24 +221,6 @@ function shareJob() {
    */
   const glightbox = GLightbox({
     selector: '.glightbox'
-  });
-
-  /**
-   * Testimonials slider
-   */
-  new Swiper('.testimonials-slider', {
-    speed: 600,
-    loop: true,
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false
-    },
-    slidesPerView: 'auto',
-    pagination: {
-      el: '.swiper-pagination',
-      type: 'bullets',
-      clickable: true
-    }
   });
 
   function getCurrentScroll() {
@@ -259,23 +268,6 @@ function shareJob() {
   });
 
   /**
-   * Portfolio details slider
-   */
-  new Swiper('.portfolio-details-slider', {
-    speed: 400,
-    loop: true,
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      type: 'bullets',
-      clickable: true
-    }
-  });
-
-  /**
    * Animation on scroll
    */
   window.addEventListener('load', () => {
@@ -286,11 +278,6 @@ function shareJob() {
       mirror: false
     });
   });
-
-  /**
-   * Initiate Pure Counter 
-   */
-  new PureCounter();
 
 })()
 
