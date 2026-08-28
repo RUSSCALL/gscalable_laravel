@@ -19,19 +19,19 @@
           <li><a class="nav-link {{ Route::currentRouteName() == 'careers' ? 'active' : '' }}" href="{{ route('careers')}}" {{ Route::currentRouteName() == 'careers' ? 'aria-current=page' : '' }}>Careers</a></li>
 
           <li class="dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                GST Portal
+            <a class="nav-link" href="#" id="navbarDropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                GST Portal <i class="bi bi-chevron-down"></i>
             </a>
-            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <ul aria-labelledby="navbarDropdown">
                 @guest
-                    <li><a class="dropdown-item" href="{{ route('login')}}"><i class="bi bi-box-arrow-in-right me-2"></i>Sign In</a></li>
-                    <li><a class="dropdown-item" href="{{ route('register')}}"><i class="bi bi-person-plus me-2"></i>Register</a></li>
+                    <li><a href="{{ route('login')}}"><i class="bi bi-box-arrow-in-right me-2"></i>Sign In</a></li>
+                    <li><a href="{{ route('register')}}"><i class="bi bi-person-plus me-2"></i>Register</a></li>
                 @else
-                    <li><a class="dropdown-item" href="{{ route('auth.redirect')}}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                    <li><a href="{{ route('auth.redirect')}}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                     <li>
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="dropdown-item p-0">
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="p-0">
                             @csrf
-                            <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 <i class="bi bi-box-arrow-right me-2"></i>Logout
                             </a>
                         </form>

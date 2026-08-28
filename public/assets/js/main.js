@@ -177,10 +177,10 @@ function shareJob() {
    * Mobile nav dropdowns activate
    */
   on('click', '.navbar .dropdown > a', function(e) {
-    if (select('#navbar').classList.contains('navbar-mobile')) {
-      e.preventDefault()
-      this.nextElementSibling.classList.toggle('dropdown-active')
-    }
+    // href="#" toggle — never let it jump the page
+    e.preventDefault()
+    let expanded = this.nextElementSibling.classList.toggle('dropdown-active')
+    this.setAttribute('aria-expanded', expanded ? 'true' : 'false')
   }, true)
 
   /**
