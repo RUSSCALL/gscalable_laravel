@@ -217,57 +217,6 @@ function shareJob() {
   }
 
   /**
-   * Initiate glightbox 
-   */
-  const glightbox = GLightbox({
-    selector: '.glightbox'
-  });
-
-  function getCurrentScroll() {
-    return window.pageYOffset || document.documentElement.scrollTop;
-  }
-
-  /**
-   * Porfolio isotope and filter
-   */
-  window.addEventListener('load', () => {
-
-    let portfolioContainer = select('.portfolio-container');
-
-    if (portfolioContainer) {
-      let portfolioIsotope = new Isotope(portfolioContainer, {
-        itemSelector: '.portfolio-item'
-      });
-
-      let portfolioFilters = select('#portfolio-flters li', true);
-
-      on('click', '#portfolio-flters li', function(e) {
-        e.preventDefault();
-        portfolioFilters.forEach(function(el) {
-          el.classList.remove('filter-active');
-        });
-        this.classList.add('filter-active');
-
-        portfolioIsotope.arrange({
-          filter: this.getAttribute('data-filter')
-        });
-        portfolioIsotope.on('arrangeComplete', function() {
-          AOS.refresh()
-        });
-
-      }, true);
-    }
-
-  });
-
-  /**
-   * Initiate portfolio lightbox 
-   */
-  const portfolioLightbox = GLightbox({
-    selector: '.portfolio-lightbox'
-  });
-
-  /**
    * Animation on scroll
    */
   window.addEventListener('load', () => {
@@ -278,6 +227,28 @@ function shareJob() {
       mirror: false
     });
   });
+
+  /**
+   * Homepage contact form — opens the visitor's mail client with a prefilled message
+   */
+  (function () {
+    let form = document.getElementById('gst-contact-form');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      let name = form.name.value.trim();
+      let email = form.email.value.trim();
+      let subject = form.subject.value.trim();
+      let message = form.message.value.trim();
+
+      let body = 'Name: ' + name + '\nEmail: ' + email + '\n\n' + message;
+      let mailto = 'mailto:support@gscalabletech.com'
+        + '?subject=' + encodeURIComponent(subject)
+        + '&body=' + encodeURIComponent(body);
+
+      window.location.href = mailto;
+    });
+  })();
 
 })()
 

@@ -1,5 +1,11 @@
 @extends('main_layout')
 
+{{-- Give the hero image absolute loading priority: the browser starts fetching it
+     as soon as the HTML <head> is parsed, before CSS/fonts/JS. --}}
+@push('head')
+  <link rel="preload" as="image" href="{{ asset('assets/img/hero-security-lock.png') }}" fetchpriority="high">
+@endpush
+
 @section('main_content')
 
 <!-- ======= Hero Section ======= -->
@@ -14,8 +20,10 @@
         <a href="#contact" class="btn-gst-ghost scrollto">Contact Us</a>
       </div>
     </div>
-    <div class="gst-hero-graphic-wrap" data-aos="fade-up" data-aos-delay="250">
-      <img class="gst-hero-graphic" src="{{ asset('assets/img/hero-security-lock.png') }}" alt="" loading="eager">
+    <div class="gst-hero-graphic-wrap">
+      <img class="gst-hero-graphic" src="{{ asset('assets/img/hero-security-lock.png') }}"
+           alt="" width="1500" height="844"
+           loading="eager" fetchpriority="high">
     </div>
   </div>
 </section><!-- End Hero -->
@@ -43,12 +51,16 @@
       {{ collect($gstCertifications)->pluck('label')->implode(', ') }}.
     </p>
 
+    {{-- 3 identical copies of the badge set. The track scrolls left by exactly
+         one copy (-33.333%) then resets — because copy 2 lands where copy 1 was,
+         the reset is invisible. Two copies always cover the viewport, so there
+         is never a gap regardless of screen width. --}}
     <div class="cert-marquee" aria-hidden="true">
       <div class="cert-marquee-track">
-        @for ($set = 0; $set < 4; $set++)
+        @for ($set = 0; $set < 3; $set++)
           @foreach ($gstCertifications as $cert)
             <span class="cert-badge">
-              <img src="{{ asset('assets/img/certifications/' . $cert['file']) }}" alt="" loading="lazy">
+              <img src="{{ asset('assets/img/certifications/' . $cert['file']) }}" alt="" height="26" loading="lazy" decoding="async">
             </span>
           @endforeach
         @endfor
@@ -58,8 +70,12 @@
 
   <!-- ======= Who We Are ======= -->
   <section id="about" class="about-lede" aria-labelledby="about-heading">
-    <div class="about-lede-media" aria-hidden="true">
-      <img src="{{ asset('assets/img/who-we-are-2.jpg') }}" alt="" loading="lazy">
+    <div class="about-lede-media">
+      <img src="{{ asset('assets/img/who-we-are-2.jpg') }}" alt="" width="1200" height="801" loading="lazy" decoding="async" aria-hidden="true">
+      <a href="{{ route('careers') }}" class="about-lede-join">
+        <span class="about-lede-join-pulse" aria-hidden="true"></span>
+        <span class="about-lede-join-label">Join Our Team <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+      </a>
     </div>
     <div class="container" data-aos="fade-up">
       <div class="about-lede-body">
@@ -266,27 +282,6 @@
 
     </div>
   </section><!-- End Contact Section -->
-
-<script>
-  (function () {
-    var form = document.getElementById('gst-contact-form');
-    if (!form) return;
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var name = form.name.value.trim();
-      var email = form.email.value.trim();
-      var subject = form.subject.value.trim();
-      var message = form.message.value.trim();
-
-      var body = 'Name: ' + name + '\nEmail: ' + email + '\n\n' + message;
-      var mailto = 'mailto:support@gscalabletech.com'
-        + '?subject=' + encodeURIComponent(subject)
-        + '&body=' + encodeURIComponent(body);
-
-      window.location.href = mailto;
-    });
-  })();
-</script>
 
 </main><!-- End #main -->
 

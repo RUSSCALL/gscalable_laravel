@@ -1,12 +1,9 @@
 <?php
 
-use App\Models\User;
-use Illuminate\Routing\RouteGroup;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\JobApplicantController;
 use App\Http\Controllers\AuthRedirectsController;
-use App\Models\JobApplication;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,7 +63,3 @@ Route::middleware(['auth' , 'verified' ,'can:user-is-an-applicant'])->group(func
 Route::get('/careers', [JobApplicantController::class, 'index'])->name('careers');
 Route::get('/applicantjobs/search', [JobApplicantController::class, 'search'])->name('jobapplicant.search');
 Route::get('/applicantjobs/{slug}', [JobApplicantController::class, 'show'])->name('jobapplicant.show');
-
-// // Optional API routes for getting dynamic data
-// Route::get('/api/jobs/employment-types', [JobApplicantController::class, 'getEmploymentTypes'])->name('api.jobs.employment-types');
-// Route::get('/api/jobs/experience-levels', [JobApplicantController::class, 'getExperienceLevels'])->name('api.jobs.experience-levels');
