@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class JobApplication extends Model
 {
@@ -86,6 +87,42 @@ class JobApplication extends Model
     public function scopeReference($query, string $reference)
     {
         return $query->where('reference', strtoupper(trim($reference)));
+    }
+
+    /**
+     * How each stored status is presented to the applicant.
+     *
+     * The column values are internal ("under_review"); these are the words the
+     * applicant actually reads, plus the tone the badge is drawn in. `tone` is
+     * a state, not a colour name, so the stylesheet owns the palette.
+     */
+    private const STATUS_PRESENTATION = [
+        'submitted' => ['Submitted', 'neutral', 'We have your application.'],
+        'under_review' => ['Under review', 'active', 'Our team is reading your application.'],
+        'interview_scheduled' => ['Interview scheduled', 'active', 'Check your email for the details.'],
+        'interviewed' => ['Interviewed', 'active', 'Thanks for meeting us — we are considering next steps.'],
+        'shortlisted' => ['Shortlisted', 'positive', 'You are among the candidates we are taking forward.'],
+        'offer_made' => ['Offer made', 'positive', 'Check your email for the offer.'],
+        'offer_accepted' => ['Offer accepted', 'positive', 'Welcome aboard — we will be in touch about onboarding.'],
+        'hired' => ['Hired', 'positive', 'Welcome to the team.'],
+        'rejected' => ['Not progressing', 'closed', 'We are not moving forward with this application.'],
+        'offer_declined' => ['Offer declined', 'closed', 'You declined this offer.'],
+    ];
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUS_PRESENTATION[$this->status][0]
+            ?? Str::headline($this->status ?? 'Submitted');
+    }
+
+    public function getStatusToneAttribute(): string
+    {
+        return self::STATUS_PRESENTATION[$this->status][1] ?? 'neutral';
+    }
+
+    public function getStatusDescriptionAttribute(): string
+    {
+        return self::STATUS_PRESENTATION[$this->status][2] ?? '';
     }
 
     /**

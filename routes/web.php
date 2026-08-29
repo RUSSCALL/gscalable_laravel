@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\JobApplicantController;
 use App\Http\Controllers\ApplicantAccountController;
+use App\Http\Controllers\ApplicantDashboardController;
 use App\Http\Controllers\AuthRedirectsController;
 
 /*
@@ -36,6 +37,11 @@ Route::get('/terms', function() {
 
 
 Route::get('/auth_redirect' , [AuthRedirectsController::class, 'index'])->middleware(['auth' , 'verified'])->name('auth.redirect');
+
+// Applicant dashboard — read-only view of their own applications.
+Route::get('/dashboard', [ApplicantDashboardController::class, 'index'])
+    ->middleware(['auth', 'verified', 'can:user-is-an-applicant'])
+    ->name('applicant.dashboard');
 
 
 // Admin Routes
