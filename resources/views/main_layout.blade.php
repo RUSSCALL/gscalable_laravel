@@ -5,9 +5,17 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Global Scalable Technologies</title>
-  <meta content="" name="description">
-  <meta content="" name="keywords">
+  {{-- Pages set their own title/description via @section and @push. The
+       defaults below apply to any page that doesn't. --}}
+  @hasSection('title')
+    <title>@yield('title')</title>
+  @else
+    <title>Global Scalable Technologies</title>
+  @endif
+
+  @hasSection('meta_description')
+    <meta name="description" content="@yield('meta_description')">
+  @endif
 
   <!-- Favicons -->
   <link href="{{ asset('assets/img/Favicon1.jpg')}}" rel="icon">

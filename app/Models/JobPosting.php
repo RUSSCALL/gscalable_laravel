@@ -120,29 +120,21 @@ class JobPosting extends Model
         if (!$this->salary_min && !$this->salary_max) {
             return 'Competitive';
         }
-        
-        if ($this->salary_min && !$this->salary_max) {
-            return 'From ' . $this->formatSalary($this->salary_min);
+
+        $currency = $this->salary_currency ?: 'USD';
+
+        if ($this->salary_min && $this->salary_max) {
+            $amount = $currency . ' ' . number_format($this->salary_min, 0)
+                . ' - ' . number_format($this->salary_max, 0);
+        } elseif ($this->salary_min) {
+            $amount = 'From ' . $currency . ' ' . number_format($this->salary_min, 0);
+        } else {
+            $amount = 'Up to ' . $currency . ' ' . number_format($this->salary_max, 0);
         }
-        
-        if (!$this->salary_min && $this->salary_max) {
-            return 'Up to ' . $this->formatSalary($this->salary_max);
-        }
-        
-        return $this->formatSalary($this->salary_min) . ' - ' . $this->formatSalary($this->salary_max);
-    }
-    
-    /**
-     * Format a salary value with currency and period.
-     */
-    protected function formatSalary($value)
-    {
-        $formatted = $this->salary_currency . ' ' . number_format($value, 0);
-        
-        if ($this->salary_period) {
-            $formatted .= ' per ' . strtolower($this->salary_period);
-        }
-        
-        return $formatted;
+
+        // Currency and period are stated once for the whole range, not per bound.
+        return $this->salary_period
+            ? $amount . ' per ' . strtolower($this->salary_period)
+            : $amount;
     }
 }

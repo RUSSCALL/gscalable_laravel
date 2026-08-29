@@ -22,19 +22,21 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::define('user-is-an-applicant' , 
+        // role is null-safe: a user pointing at a missing/orphaned role row
+        // must fail the gate, not throw.
+        Gate::define('user-is-an-applicant' ,
         function ($user) {
-            return $user->role->role_name == 'job_applicant';
+            return $user->role?->role_name === 'job_applicant';
         });
 
-        Gate::define('user-is-admin' , 
+        Gate::define('user-is-admin' ,
         function ($user) {
-            return $user->role->role_name == 'Admin' || $user->role->role_name == 'SuperAdmin' ;
+            return in_array($user->role?->role_name, ['Admin', 'SuperAdmin'], true);
         });
 
-        Gate::define('user-is-superadmin' , 
+        Gate::define('user-is-superadmin' ,
         function ($user) {
-            return $user->role->role_name == 'SuperAdmin' ;
+            return $user->role?->role_name === 'SuperAdmin';
         });
 
     }

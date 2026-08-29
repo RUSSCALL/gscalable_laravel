@@ -1,258 +1,213 @@
 @extends('main_layout')
 
+@php
+    $deadline = \Carbon\Carbon::parse($job->application_deadline)->endOfDay();
+    $daysLeft = (int) now()->startOfDay()->diffInDays($deadline, false);
+    $isOpen = $daysLeft >= 0;
+    $metaDescription = Str::limit(strip_tags($job->description), 155);
+    $canonical = route('careers.show', $job->slug);
+
+    $locationLabel = $job->location
+        ? ($job->location->is_remote ? 'Remote' : $job->location->city . ', ' . $job->location->country)
+        : 'Location flexible';
+@endphp
+
+@section('title', $job->title . ' — Careers — Global Scalable Technologies')
+@section('meta_description', $metaDescription)
+
+@push('head')
+<link rel="canonical" href="{{ $canonical }}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{ $job->title }} — Global Scalable Technologies">
+<meta property="og:description" content="{{ $metaDescription }}">
+<meta property="og:url" content="{{ $canonical }}">
+<script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endpush
+
 @section('main_content')
-<!-- ======= Job Posting Section ======= -->
-<section id="job-posting" class="job-posting">
-  <div class="container" data-aos="fade-up">
-    <!-- Horizontal Line -->
-    <div class="row">
-      <div class="col-12">
-        <hr class="careers-divider">
-      </div>
-    </div>
 
-    <div class="row">
-      <div class="col-lg-8">
-        <!-- Back Button -->
-        <div class="mb-4">
-          <a href="{{ route('careers') }}" class="careers-back-link">
-            <i class="bi bi-arrow-left"></i> Back to all jobs
-          </a>
+<!-- ======= Job Detail Hero ======= -->
+<section class="job-detail-hero">
+    <div class="container" data-aos="fade-up">
+        <div class="careers-back-row">
+            <a href="{{ route('careers') }}" class="careers-back-link">
+                <i class="bi bi-arrow-left"></i> All open roles
+            </a>
         </div>
 
-        <!-- Job Header -->
-        <div class="job-detail-header">
-          <h1 class="job-detail-title">{{ $job->title }}</h1>
-          <div class="job-header">
-            <div class="job-locations">
-              @if($job->location)
-                @if($job->location->is_remote)
-                  US-Remote / Telework
-                @else
-                  {{ $job->location->city }}, {{ $job->location->country }}
-                @endif
-              @else
-                Location Not Specified
-              @endif
-            </div>
-            <div class="job-id">{{ date('Y') }}-{{ $job->id }}</div>
-          </div>
-          
-          <div class="job-meta">
-            <span class="job-type me-3"><i class="bi bi-briefcase me-1"></i> {{ $job->employment_type }}</span>
-            <span class="job-level me-3"><i class="bi bi-bar-chart me-1"></i> {{ $job->experience_level }}</span>
+        <h1 class="job-detail-title">{{ $job->title }}</h1>
+
+        <div class="job-detail-meta">
+            @if($job->is_featured)
+                <span class="job-pill job-pill--featured">Featured</span>
+            @endif
+            <span class="job-pill"><i class="bi bi-geo-alt"></i> {{ $locationLabel }}</span>
+            <span class="job-pill"><i class="bi bi-briefcase"></i> {{ $job->employment_type }}</span>
+            <span class="job-pill"><i class="bi bi-bar-chart"></i> {{ $job->experience_level }}</span>
             @if($job->category)
-              <span class="job-category me-3"><i class="bi bi-bookmark me-1"></i> {{ $job->category->name }}</span>
+                <span class="job-pill"><i class="bi bi-bookmark"></i> {{ $job->category->name }}</span>
             @endif
-            
-            @php
-              $deadline = \Carbon\Carbon::parse($job->application_deadline);
-              $daysLeft = $deadline->diffInDays(now());
-            @endphp
-            
-            @if($deadline->isPast())
-              <span class="badge bg-danger">Application Closed</span>
+
+            @if(! $isOpen)
+                <span class="badge-deadline badge-deadline--closed">Closed</span>
             @elseif($daysLeft <= 5)
-              <span class="badge bg-warning text-dark">{{ $daysLeft }} days left to apply</span>
+                <span class="badge-deadline badge-deadline--warn">
+                    {{ $daysLeft === 0 ? 'Closes today' : $daysLeft . ' ' . Str::plural('day', $daysLeft) . ' left' }}
+                </span>
             @else
-              <span class="deadline"><i class="bi bi-calendar-event me-1"></i> Apply by {{ $deadline->format('M d, Y') }}</span>
+                <span class="badge-deadline">Apply by {{ $deadline->format('M j, Y') }}</span>
             @endif
-          </div>
-          
-          @if($job->is_featured)
-            <div class="featured-badge mt-2">
-              <span class="badge bg-warning text-dark">Featured Position</span>
-            </div>
-          @endif
         </div>
-
-        <!-- Job Details -->
-        <div class="job-detail-content mt-4">
-          <!-- Salary Information -->
-          @if($job->salary_min || $job->salary_max)
-            <div class="salary-info mb-4">
-              <h5><i class="bi bi-currency-dollar"></i> Compensation</h5>
-              <p>
-                @if($job->salary_min && $job->salary_max)
-                  {{ number_format($job->salary_min, 0) }} - {{ number_format($job->salary_max, 0) }} {{ $job->salary_currency }} 
-                  @if($job->salary_period)
-                    ({{ $job->salary_period }})
-                  @endif
-                @elseif($job->salary_min)
-                  From {{ number_format($job->salary_min, 0) }} {{ $job->salary_currency }}
-                  @if($job->salary_period)
-                    ({{ $job->salary_period }})
-                  @endif
-                @elseif($job->salary_max)
-                  Up to {{ number_format($job->salary_max, 0) }} {{ $job->salary_currency }}
-                  @if($job->salary_period)
-                    ({{ $job->salary_period }})
-                  @endif
-                @endif
-              </p>
-            </div>
-          @endif
-
-          <!-- Job Description -->
-          <div class="job-section mb-4">
-            <h5><i class="bi bi-info-circle"></i> Job Description</h5>
-            <div>
-              {!! $job->description !!}
-            </div>
-          </div>
-
-          <!-- Responsibilities -->
-          <div class="job-section mb-4">
-            <h5><i class="bi bi-list-task"></i> Responsibilities</h5>
-            <div>
-              {!! $job->responsibilities !!}
-            </div>
-          </div>
-
-          <!-- Requirements -->
-          <div class="job-section mb-4">
-            <h5><i class="bi bi-check-circle"></i> Requirements</h5>
-            <div>
-              {!! $job->requirements !!}
-            </div>
-          </div>
-
-          <!-- Benefits -->
-          @if($job->benefits)
-            <div class="job-section mb-4">
-              <h5><i class="bi bi-gift"></i> Benefits</h5>
-              <div>
-                {!! $job->benefits !!}
-              </div>
-            </div>
-          @endif
-
-          <!-- Apply Section -->
-          <div class="apply-section mt-5">
-            @if(!$deadline->isPast())
-              <div class="d-grid gap-2">
-                @auth
-                  @if(isset($hasApplied) && $hasApplied)
-                    <a href="{{ route('careers') }}" class="btn btn-outline-info btn-lg">
-                      <i class="bi bi-arrow-left"></i> You have already applied!
-                    </a>
-                  @else
-                    <a href="{{route('job.apply' , $job->slug)}}" class="btn btn-apply btn-lg">
-                      <i class="bi bi-send"></i> Apply Now
-                    </a>
-                  @endif
-                @else
-                  <a href="{{ route('login') }}" class="btn btn-outline-primary btn-lg">
-                    <i class="bi bi-person"></i> Login to Apply
-                  </a>
-                @endauth
-                
-                <button class="btn btn-share" type="button" onclick="shareJob()">
-                  <i class="bi bi-share"></i> Share with a Friend
-                </button>
-              </div>
-            @else
-              <div class="alert alert-danger">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                This position is no longer accepting applications.
-              </div>
-            @endif
-          </div>
-
-          <!-- Job Stats -->
-          <div class="job-stats mt-4">
-            <div class="d-flex justify-content-center text-muted small">
-              <span class="me-3"><i class="bi bi-eye"></i> {{ $job->views_count }} views</span>
-              <span class="me-3"><i class="bi bi-people"></i> {{ $job->applications_count }} applications</span>
-              <span><i class="bi bi-calendar-check"></i> Posted: {{ \Carbon\Carbon::parse($job->published_at)->format('M d, Y') }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column -->
-      <div class="col-lg-4">
-        <!-- Quick Apply Card -->
-        <div class="card job-quick-apply mb-4">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Quick Apply</h5>
-          </div>
-          <div class="card-body">
-            @if(!$deadline->isPast())
-            <p>Ready to join our team? Apply now in just a few steps.</p>
-            
-            @auth
-            <div class="d-grid">
-              @if(isset($hasApplied) && $hasApplied)
-                <a href="{{ route('careers') }}" class="btn btn-outline-info">
-                  <i class="bi bi-arrow-left"></i> You have already applied!
-                </a>
-              @else
-                <a href="{{ route('job.apply', $job->slug) }}" class="btn btn-apply">
-                  <i class="bi bi-send"></i> Apply for this Job
-                </a>
-              @endif
-            </div>
-          @else
-            <div class="d-grid">
-              <a href="{{ route('login') }}" class="btn btn-outline-primary">
-                <i class="bi bi-person"></i> Login to Apply
-              </a>
-            </div>
-          @endauth
-            
-          @else
-            <p class="text-danger">
-              <i class="bi bi-exclamation-triangle me-2"></i>
-              This position is no longer accepting applications.
-            </p>
-          @endif
-          </div>
-        </div>
-
-        <!-- Company Info Card -->
-        <div class="card company-info mb-4">
-          <div class="card-body">
-            <h5 class="card-title">About Global Scalable Technologies</h5>
-            <p>Global Scalable Technologies (GST) is a dynamic, forward-thinking company committed to excellence in cybersecurity solutions.</p>
-          </div>
-        </div>
-
-        <!-- Similar Jobs Card -->
-        @if(count($relatedJobs) > 0)
-          <div class="card similar-jobs">
-            <div class="card-header">
-              <h5 class="mb-0">Similar Positions</h5>
-            </div>
-            <div class="card-body p-0">
-              <ul class="list-group list-group-flush">
-                @foreach($relatedJobs as $relatedJob)
-                  <li class="list-group-item">
-                    <a href="{{ route('jobapplicant.show', $relatedJob->slug) }}" class="similar-job-link">
-                      {{ $relatedJob->title }}
-                    </a>
-                    <div class="small text-muted">
-                      @if($relatedJob->location)
-                        @if($relatedJob->location->is_remote)
-                          US-Remote
-                        @else
-                          {{ $relatedJob->location->city }}
-                        @endif
-                      @else
-                        Location Not Specified
-                      @endif
-                      <span class="mx-1">•</span>
-                      {{ $relatedJob->employment_type }}
-                    </div>
-                  </li>
-                @endforeach
-              </ul>
-            </div>
-          </div>
-        @endif
-      </div>
     </div>
-  </div>
-</section><!-- End Job Posting Section -->
+</section>
+
+<!-- ======= Job Detail Body ======= -->
+<section class="job-detail-body-band">
+    <div class="container" data-aos="fade-up">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="job-detail-body">
+                    @if($job->salary_min || $job->salary_max)
+                        <div class="job-section">
+                            <h2>Compensation</h2>
+                            <p>{{ $job->salary_range }}</p>
+                        </div>
+                    @endif
+
+                    <div class="job-section">
+                        <h2>About the role</h2>
+                        {{-- Stored copy is plain text with newlines, so escape it
+                             and convert the breaks rather than echoing raw HTML. --}}
+                        <p>{!! nl2br(e($job->description)) !!}</p>
+                    </div>
+
+                    @if($job->responsibilities)
+                        <div class="job-section">
+                            <h2>Responsibilities</h2>
+                            <p>{!! nl2br(e($job->responsibilities)) !!}</p>
+                        </div>
+                    @endif
+
+                    @if($job->requirements)
+                        <div class="job-section">
+                            <h2>Requirements</h2>
+                            <p>{!! nl2br(e($job->requirements)) !!}</p>
+                        </div>
+                    @endif
+
+                    @if($job->benefits)
+                        <div class="job-section">
+                            <h2>Benefits</h2>
+                            <p>{!! nl2br(e($job->benefits)) !!}</p>
+                        </div>
+                    @endif
+
+                    <div class="job-detail-stats">
+                        <span><i class="bi bi-eye"></i> {{ number_format($job->views_count) }} views</span>
+                        <span><i class="bi bi-people"></i> {{ number_format($job->applications_count) }} applications</span>
+                        @if($job->published_at)
+                            <span><i class="bi bi-calendar-check"></i>
+                                Posted {{ \Carbon\Carbon::parse($job->published_at)->format('M j, Y') }}
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aside -->
+            <div class="col-lg-4">
+                <div class="job-detail-aside">
+                    <div class="job-apply-card gst-card-base">
+                        @if(! $isOpen)
+                            <h2>Applications closed</h2>
+                            <p class="job-apply-closed">
+                                This role is no longer accepting applications.
+                            </p>
+                            <a href="{{ route('careers') }}" class="btn-gst-outline">
+                                <i class="bi bi-arrow-left"></i> Browse open roles
+                            </a>
+                        @elseif($hasApplied)
+                            <h2>Application received</h2>
+                            <p>We have your application for this role and will be in touch.</p>
+                            <a href="{{ route('careers') }}" class="btn-gst-outline">
+                                <i class="bi bi-arrow-left"></i> Browse other roles
+                            </a>
+                        @else
+                            <h2>Ready to apply?</h2>
+                            <p>It takes a few minutes. Have your resume ready.</p>
+                            <div class="job-apply-actions">
+                                @auth
+                                    <a href="{{ route('careers.apply', $job->slug) }}" class="btn-gst-primary">
+                                        <i class="bi bi-send"></i> Apply now
+                                    </a>
+                                @else
+                                    {{-- Send the visitor back to this job's form after login,
+                                         instead of dropping them on a dashboard. --}}
+                                    <a href="{{ route('login', ['redirect' => route('careers.apply', $job->slug)]) }}"
+                                       class="btn-gst-primary">
+                                        <i class="bi bi-send"></i> Apply now
+                                    </a>
+                                @endauth
+
+                                <button type="button" class="btn-gst-outline"
+                                        onclick="shareJob(@js($job->title), @js($canonical))">
+                                    <i class="bi bi-share"></i> Share role
+                                </button>
+                            </div>
+                        @endif
+
+                        <ul class="job-facts">
+                            <li>
+                                <span class="job-fact-label">Type</span>
+                                <span class="job-fact-value">{{ $job->employment_type }}</span>
+                            </li>
+                            <li>
+                                <span class="job-fact-label">Level</span>
+                                <span class="job-fact-value">{{ $job->experience_level }}</span>
+                            </li>
+                            <li>
+                                <span class="job-fact-label">Location</span>
+                                <span class="job-fact-value">{{ $locationLabel }}</span>
+                            </li>
+                            @if($job->salary_min || $job->salary_max)
+                                <li>
+                                    <span class="job-fact-label">Salary</span>
+                                    <span class="job-fact-value">{{ $job->salary_range }}</span>
+                                </li>
+                            @endif
+                            <li>
+                                <span class="job-fact-label">Closes</span>
+                                <span class="job-fact-value">{{ $deadline->format('M j, Y') }}</span>
+                            </li>
+                            <li>
+                                <span class="job-fact-label">Job ID</span>
+                                <span class="job-fact-value">{{ date('Y') }}-{{ $job->id }}</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    @if($relatedJobs->isNotEmpty())
+                        <div class="job-similar-card gst-card-base">
+                            <h2>Similar roles</h2>
+                            @foreach($relatedJobs as $relatedJob)
+                                <a href="{{ route('careers.show', $relatedJob->slug) }}" class="similar-role">
+                                    <p class="similar-role-title">{{ $relatedJob->title }}</p>
+                                    <p class="similar-role-meta">
+                                        @if($relatedJob->location)
+                                            {{ $relatedJob->location->is_remote ? 'Remote' : $relatedJob->location->city }}
+                                        @else
+                                            Location flexible
+                                        @endif
+                                        &middot; {{ $relatedJob->employment_type }}
+                                    </p>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</section><!-- End Job Detail -->
 
 @endsection

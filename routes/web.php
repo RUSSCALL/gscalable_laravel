@@ -55,11 +55,26 @@ Route::middleware(['auth' , 'verified' , 'can:user-is-admin'])->group(function()
 });
 
 
-// Job listing routes for applicants
-Route::middleware(['auth' , 'verified' ,'can:user-is-an-applicant'])->group(function(){
-    Route::get('/jobs/{slug}/apply' , [JobApplicantController::class, 'apply'])->name('job.apply');
-    Route::post('/saveJobApplication', [JobApplicantController::class, 'store'])->name('jobapplication.store');
-});
+/*
+|--------------------------------------------------------------------------
+| Careers (applicant-facing)
+|--------------------------------------------------------------------------
+| Everything applicant-facing lives under /careers/*. The board handles its
+| own filtering from the query string, so there is no separate search route.
+*/
 Route::get('/careers', [JobApplicantController::class, 'index'])->name('careers');
-Route::get('/applicantjobs/search', [JobApplicantController::class, 'search'])->name('jobapplicant.search');
-Route::get('/applicantjobs/{slug}', [JobApplicantController::class, 'show'])->name('jobapplicant.show');
+Route::get('/careers/{slug}', [JobApplicantController::class, 'show'])->name('careers.show');
+
+Route::middleware(['auth' , 'verified' ,'can:user-is-an-applicant'])->group(function(){
+    Route::get('/careers/{slug}/apply', [JobApplicantController::class, 'apply'])->name('careers.apply');
+    Route::post('/careers/{slug}/apply', [JobApplicantController::class, 'store'])->name('careers.apply.store');
+});
+
+// Legacy URLs — keep old links, bookmarks and inbound SEO alive.
+Route::permanentRedirect('/applicantjobs/search', '/careers');
+Route::get('/applicantjobs/{slug}', function ($slug) {
+    return redirect()->route('careers.show', $slug, 301);
+});
+Route::get('/jobs/{slug}/apply', function ($slug) {
+    return redirect()->route('careers.apply', $slug, 301);
+})->where('slug', '[A-Za-z][A-Za-z0-9\-]*');

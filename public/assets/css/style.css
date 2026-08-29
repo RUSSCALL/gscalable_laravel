@@ -615,166 +615,8 @@ section {
 
 
 
-        /* Reuse existing styles from careers page */
-        .careers-divider {
-          border-top: 1px solid var(--gst-orange-500);
-          margin: 40px 0;
-          }
-  
-          .careers-back-link {
-          color: #333;
-          text-decoration: none;
-          }
-  
-          .careers-back-link:hover {
-          text-decoration: underline;
-          }
-  
-          /* Job Detail specific styles */
-          .job-detail-title {
-          color: var(--gst-orange-500);
-          font-size: 32px;
-          font-weight: 700;
-          margin-bottom: 10px;
-          }
-  
-          .job-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 10px;
-          font-size: 14px;
-          }
-  
-          .job-id {
-          color: #666;
-          }
-  
-          .job-meta {
-          margin-bottom: 20px;
-          font-size: 14px;
-          color: #555;
-          }
-  
-          .job-section {
-          margin-bottom: 30px;
-          }
-  
-          .job-section h5 {
-          color: #333;
-          font-weight: 600;
-          margin-bottom: 15px;
-          border-bottom: 1px solid #eee;
-          padding-bottom: 10px;
-          }
-  
-          .btn-apply {
-          background-color: var(--gst-orange-500);
-          color: white;
-          border: none;
-          }
-  
-          .btn-apply:hover {
-          background-color: var(--gst-orange-600);
-          color: white;
-          }
-  
-          .btn-share {
-          background-color: #6c757d;
-          color: white;
-          border: none;
-          }
-  
-          .btn-share:hover {
-          background-color: #5a6268;
-          color: white;
-          }
-  
-          .job-quick-apply .card-header {
-          background-color: var(--gst-orange-500) !important;
-          }
-  
-          .company-info {
-          border-color: #eee;
-          }
-  
-          .similar-job-link {
-          color: var(--gst-orange-500);
-          text-decoration: none;
-          }
-  
-          .similar-job-link:hover {
-          text-decoration: underline;
-          }
-  
-          .job-stats {
-          margin-top: 30px;
-          color: #888;
-          font-size: 14px;
-          }
-  
-          @media (max-width: 991px) {
-          .col-lg-4 {
-              margin-top: 40px;
-          }
-          }
-
-          /* Application Form Specific Styles */
-.application-section {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 20px;
-}
-
-.application-section h5 {
-  color: #333;
-  font-weight: 600;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-}
-
-.application-form {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-}
-
-.application-tips-list {
-  list-style: none;
-  padding-left: 0;
-}
-
-.application-tips-list li {
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.job-summary .card-header {
-  background-color: var(--gst-orange-500) !important;
-}
-
-.application-tips-card .card-header {
-  background-color: #f8f9fa;
-  border-bottom: 2px solid var(--gst-orange-500);
-}
-
-/* Ensure form elements have consistent styling */
-.form-control, .form-select {
-  border-radius: 4px;
-  border: 1px solid #ced4da;
-  padding: 8px 12px;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.form-control:focus, .form-select:focus {
-  border-color: var(--gst-orange-500);
-  box-shadow: 0 0 0 0.25rem rgba(247, 148, 29, 0.25);
-}
-
-.form-text {
-  color: #6c757d;
-  font-size: 12px;
-  margin-top: 5px;
-}
+/* Careers/job styles that used to live here have moved to the
+   GST CAREERS section at the end of this file. */
 
 
 /* Flash Notifications - Moved outside of media query to apply to all screen sizes */
@@ -1565,14 +1407,23 @@ section {
 
 /* Full-bleed image pinned to the right half of the section,
    fading into the section background along its left edge */
+/* Deliberately no z-index on the wrapper: any value here creates a stacking
+   context that traps the Join button underneath the text column
+   (.about-lede .container, z-index 1), which then silently swallows its
+   clicks. The image is pushed back via its own z-index instead, so the
+   button's z-index competes directly with the text column. */
 .about-lede-media {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   width: 50%;
-  z-index: 0;
   pointer-events: none;
+}
+
+.about-lede-media img {
+  position: relative;
+  z-index: 0;
 }
 
 .about-lede-media img {
@@ -1608,15 +1459,16 @@ section {
    "Join Our Team" CTA — detached pill, vertically centred and
    floating half-off the right edge of the Who We Are image
    ============================================================ */
+/* z-index must beat .about-lede .container (1), which overlaps this button
+   and would otherwise intercept the click. */
 .about-lede-join {
   position: absolute;
   top: 50%;
   right: 0;
-  z-index: 2;
+  z-index: 3;
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
-  isolation: isolate;
   transform: translate(-50%, -50%);
   transition: transform 0.25s ease;
 }
@@ -2340,5 +2192,967 @@ section {
   .legal-page {
     padding-top: 48px;
     padding-bottom: 64px;
+  }
+}
+
+/* =========================================================
+   GST CAREERS â€” Job board / Job detail / Application form
+   Built on the shared design tokens, .section-title head,
+   .gst-card-base card and .btn-gst-primary button so the
+   applicant journey matches the rest of the site.
+   ========================================================= */
+
+/* -------- Shared: hero bands (clear the fixed navbar) -------- */
+.careers-hero,
+.job-detail-hero,
+.application-hero {
+  background: var(--gst-white);
+  padding: 160px 0 24px;
+}
+
+.careers-hero .section-title {
+  text-align: left;
+  margin-bottom: 0;
+  padding-bottom: 28px;
+}
+
+.careers-hero .section-title h2 {
+  font-family: var(--gst-font-label);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gst-orange-500);
+  margin: 0 0 14px;
+}
+
+.careers-hero .section-title h2::after {
+  content: none;
+}
+
+.careers-hero .section-title p {
+  position: relative;
+  display: inline-block;
+  font-family: var(--gst-font-heading);
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--gst-navy-900);
+  margin: 0;
+  padding-bottom: 18px;
+  max-width: 16ch;
+}
+
+.careers-hero .section-title p::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 64px;
+  height: 4px;
+  background: var(--gst-orange-500);
+  border-radius: 2px;
+}
+
+.careers-hero-subtitle {
+  font-family: var(--gst-font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--gst-slate-500);
+  max-width: 780px;
+  margin: 0;
+}
+
+/* -------- Shared: back link -------- */
+.careers-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--gst-font-label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gst-slate-500);
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.careers-back-link:hover,
+.careers-back-link:focus-visible {
+  color: var(--gst-orange-500);
+}
+
+/* -------- Board body band -------- */
+.careers-board {
+  background: var(--gst-off-white);
+  border-top: 1px solid var(--gst-line);
+  border-bottom: 1px solid var(--gst-line);
+  padding: 48px 0 80px;
+}
+
+/* -------- Shared form field language (mirrors .gst-contact-form) -------- */
+.careers-filter-bar label,
+.application-form label {
+  display: block;
+  font-family: var(--gst-font-label);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gst-slate-500);
+  margin-bottom: 6px;
+}
+
+.careers-filter-bar input,
+.careers-filter-bar select,
+.application-form input,
+.application-form select,
+.application-form textarea {
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  color: var(--gst-slate-700);
+  background: var(--gst-white);
+  border: 1px solid var(--gst-line);
+  border-radius: 4px;
+  padding: 11px 14px;
+  width: 100%;
+  transition: border-color 0.25s ease;
+}
+
+.careers-filter-bar input:focus,
+.careers-filter-bar select:focus,
+.application-form input:focus,
+.application-form select:focus,
+.application-form textarea:focus {
+  outline: none;
+  border-color: var(--gst-orange-500);
+  box-shadow: 0 0 0 3px rgba(242, 134, 29, 0.18);
+}
+
+.application-form textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.field-error {
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 600;
+  color: #c0392b;
+  margin: 6px 0 0;
+}
+
+.application-form input.is-invalid,
+.application-form select.is-invalid,
+.application-form textarea.is-invalid {
+  border-color: #c0392b;
+}
+
+.field-hint {
+  font-family: var(--gst-font-body);
+  font-size: 12.5px;
+  color: var(--gst-slate-400);
+  margin: 6px 0 0;
+}
+
+.required-mark {
+  color: var(--gst-orange-500);
+}
+
+/* -------- Filter bar -------- */
+.careers-filter-bar {
+  padding: 24px 26px;
+  margin-bottom: 32px;
+}
+
+.careers-filter-bar:hover {
+  /* A form is not a link â€” suppress the shared card lift. */
+  transform: none;
+  box-shadow: none;
+  border-color: var(--gst-line);
+}
+
+.careers-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px 20px;
+}
+
+.careers-filter-grid .careers-filter-search {
+  grid-column: 1 / -1;
+}
+
+.careers-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.careers-filter-actions .btn-gst-primary {
+  border: none;
+  cursor: pointer;
+}
+
+.careers-filter-clear {
+  font-family: var(--gst-font-label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gst-slate-500);
+  text-decoration: none;
+}
+
+.careers-filter-clear:hover {
+  color: var(--gst-orange-500);
+}
+
+/* -------- Results head + filter chips -------- */
+.careers-results-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.careers-results-count {
+  font-family: var(--gst-font-label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gst-slate-400);
+  margin: 0;
+}
+
+.careers-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 26px;
+  padding: 0;
+  list-style: none;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--gst-font-body);
+  font-size: 13px;
+  color: var(--gst-slate-700);
+  background: var(--gst-white);
+  border: 1px solid var(--gst-line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  text-decoration: none;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.filter-chip:hover,
+.filter-chip:focus-visible {
+  border-color: var(--gst-orange-500);
+  color: var(--gst-navy-900);
+}
+
+.filter-chip i {
+  font-size: 12px;
+  color: var(--gst-slate-400);
+}
+
+.filter-chip:hover i {
+  color: var(--gst-orange-500);
+}
+
+/* -------- Featured strip -------- */
+.careers-featured {
+  margin-bottom: 40px;
+}
+
+.careers-featured-label {
+  font-family: var(--gst-font-label);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gst-orange-500);
+  margin: 0 0 16px;
+}
+
+/* -------- Job grid + card -------- */
+.careers-grid,
+.careers-featured-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.job-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 26px;
+  text-decoration: none;
+  height: 100%;
+}
+
+.job-card-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gst-slate-400);
+  margin-bottom: 12px;
+}
+
+.job-card-title {
+  font-family: var(--gst-font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--gst-navy-900);
+  margin: 0 0 10px;
+  transition: color 0.25s ease;
+}
+
+.job-card:hover .job-card-title {
+  color: var(--gst-orange-600);
+}
+
+.job-card-desc {
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--gst-slate-500);
+  margin: 0 0 18px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.job-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--gst-line);
+}
+
+/* -------- Pills + deadline badges -------- */
+.job-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--gst-slate-500);
+  background: var(--gst-off-white);
+  border: 1px solid var(--gst-line);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+.job-pill--featured {
+  color: var(--gst-white);
+  background: var(--gst-orange-500);
+  border-color: var(--gst-orange-500);
+}
+
+.badge-deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-radius: 999px;
+  padding: 5px 12px;
+  color: var(--gst-slate-500);
+  background: var(--gst-off-white);
+  border: 1px solid var(--gst-line);
+}
+
+.badge-deadline--warn {
+  color: #8a5300;
+  background: #fff4e2;
+  border-color: #f5d9ac;
+}
+
+.badge-deadline--closed {
+  color: #8f2b20;
+  background: #fdecea;
+  border-color: #f2c3bd;
+}
+
+/* -------- Empty state -------- */
+.careers-empty {
+  padding: 56px 32px;
+  text-align: center;
+}
+
+.careers-empty:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--gst-line);
+}
+
+.careers-empty h3 {
+  font-family: var(--gst-font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0 0 10px;
+}
+
+.careers-empty p {
+  font-family: var(--gst-font-body);
+  font-size: 15px;
+  color: var(--gst-slate-500);
+  margin: 0 0 22px;
+}
+
+/* -------- Pagination (Bootstrap 5 markup, GST colours) -------- */
+.careers-pagination {
+  margin-top: 44px;
+}
+
+.careers-pagination .pagination {
+  justify-content: center;
+  margin: 0;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.careers-pagination .page-link {
+  font-family: var(--gst-font-label);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gst-slate-700);
+  background: var(--gst-white);
+  border: 1px solid var(--gst-line);
+  border-radius: 4px;
+  padding: 9px 15px;
+  transition: all 0.25s ease;
+}
+
+.careers-pagination .page-link:hover {
+  color: var(--gst-orange-600);
+  border-color: var(--gst-orange-500);
+  background: var(--gst-white);
+}
+
+.careers-pagination .page-item.active .page-link {
+  color: var(--gst-white);
+  background: var(--gst-orange-500);
+  border-color: var(--gst-orange-500);
+}
+
+.careers-pagination .page-item.disabled .page-link {
+  color: var(--gst-slate-400);
+  background: var(--gst-off-white);
+  border-color: var(--gst-line);
+}
+
+.careers-pagination .page-link:focus {
+  box-shadow: 0 0 0 3px rgba(242, 134, 29, 0.22);
+}
+
+/* =========================================================
+   JOB DETAIL
+   ========================================================= */
+/* The back link sits on its own row above the title. The title is
+   inline-block (its underline tracks the text width), so without this
+   wrapper the two would share a line at wide viewports. */
+.careers-back-row {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.job-detail-title {
+  position: relative;
+  display: inline-block;
+  font-family: var(--gst-font-heading);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--gst-navy-900);
+  margin: 0 0 18px;
+  padding-bottom: 16px;
+}
+
+.job-detail-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 64px;
+  height: 4px;
+  background: var(--gst-orange-500);
+  border-radius: 2px;
+}
+
+.job-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.job-detail-body-band {
+  background: var(--gst-off-white);
+  border-top: 1px solid var(--gst-line);
+  border-bottom: 1px solid var(--gst-line);
+  padding: 56px 0 80px;
+}
+
+.job-section {
+  margin-bottom: 38px;
+}
+
+.job-section:last-child {
+  margin-bottom: 0;
+}
+
+.job-section h2 {
+  font-family: var(--gst-font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0 0 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--gst-line);
+}
+
+.job-section p {
+  font-family: var(--gst-font-body);
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--gst-slate-700);
+  margin: 0;
+}
+
+.job-detail-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 40px;
+  padding-top: 22px;
+  border-top: 1px solid var(--gst-line);
+  font-family: var(--gst-font-body);
+  font-size: 13.5px;
+  color: var(--gst-slate-400);
+}
+
+/* -------- Aside -------- */
+.job-detail-aside {
+  position: sticky;
+  top: 100px;
+}
+
+.job-apply-card,
+.job-similar-card {
+  padding: 26px;
+  margin-bottom: 24px;
+}
+
+.job-apply-card:hover,
+.job-similar-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--gst-line);
+}
+
+.job-apply-card h2 {
+  font-family: var(--gst-font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0 0 10px;
+}
+
+.job-apply-card p {
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--gst-slate-500);
+  margin: 0 0 20px;
+}
+
+.job-apply-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.job-apply-actions .btn-gst-primary,
+.job-apply-actions .btn-gst-outline {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Light-background outline button â€” the global .btn-gst-ghost is hero-only
+   (white text for a dark band), so careers needs its own light variant. */
+.btn-gst-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--gst-font-label);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 13px 28px;
+  border-radius: 4px;
+  line-height: 1;
+  background: transparent;
+  color: var(--gst-slate-700);
+  border: 2px solid var(--gst-line);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-gst-outline:hover,
+.btn-gst-outline:focus-visible {
+  border-color: var(--gst-orange-500);
+  color: var(--gst-orange-600);
+}
+
+.btn-gst-outline:focus-visible {
+  outline: 2px solid var(--gst-orange-500);
+  outline-offset: 2px;
+}
+
+.job-apply-closed {
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--gst-slate-500);
+  background: var(--gst-off-white);
+  border: 1px solid var(--gst-line);
+  border-left: 3px solid var(--gst-slate-400);
+  border-radius: 4px;
+  padding: 16px 18px;
+  margin: 0 0 18px;
+}
+
+/* -------- Facts list -------- */
+.job-facts {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--gst-line);
+}
+
+.job-facts li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-family: var(--gst-font-body);
+  font-size: 14px;
+  color: var(--gst-slate-700);
+  padding: 8px 0;
+}
+
+.job-facts .job-fact-label {
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gst-slate-400);
+  flex-shrink: 0;
+}
+
+.job-facts .job-fact-value {
+  text-align: right;
+}
+
+/* -------- Similar roles -------- */
+.job-similar-card h2 {
+  font-family: var(--gst-font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0 0 16px;
+}
+
+.similar-role {
+  display: block;
+  padding: 14px 0;
+  border-top: 1px solid var(--gst-line);
+  text-decoration: none;
+}
+
+.similar-role:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.similar-role-title {
+  font-family: var(--gst-font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--gst-navy-900);
+  margin: 0 0 4px;
+  transition: color 0.25s ease;
+}
+
+.similar-role:hover .similar-role-title {
+  color: var(--gst-orange-600);
+}
+
+.similar-role-meta {
+  font-family: var(--gst-font-body);
+  font-size: 13px;
+  color: var(--gst-slate-400);
+  margin: 0;
+}
+
+/* =========================================================
+   APPLICATION FORM
+   ========================================================= */
+.application-band {
+  background: var(--gst-off-white);
+  border-top: 1px solid var(--gst-line);
+  border-bottom: 1px solid var(--gst-line);
+  padding: 48px 0 80px;
+}
+
+.application-form {
+  padding: 32px;
+}
+
+.application-form:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--gst-line);
+}
+
+.application-section {
+  padding-bottom: 28px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--gst-line);
+}
+
+.application-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 8px;
+}
+
+.application-section h2 {
+  font-family: var(--gst-font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0 0 20px;
+}
+
+.application-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+.application-grid--single {
+  grid-template-columns: 1fr;
+}
+
+.application-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.application-terms input[type="checkbox"] {
+  width: auto;
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--gst-orange-500);
+}
+
+.application-terms label {
+  font-family: var(--gst-font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--gst-slate-700);
+  margin: 0;
+}
+
+.application-submit {
+  margin-top: 30px;
+}
+
+.application-submit .btn-gst-primary {
+  width: 100%;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.application-error-summary {
+  background: #fdecea;
+  border: 1px solid #f2c3bd;
+  border-left: 3px solid #c0392b;
+  border-radius: 4px;
+  padding: 16px 18px;
+  margin-bottom: 26px;
+}
+
+.application-error-summary p {
+  font-family: var(--gst-font-label);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #8f2b20;
+  margin: 0;
+}
+
+/* -------- Aside cards on the form -------- */
+.application-aside {
+  position: sticky;
+  top: 100px;
+}
+
+.application-aside-card {
+  padding: 26px;
+  margin-bottom: 24px;
+}
+
+.application-aside-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--gst-line);
+}
+
+.application-aside-card h2 {
+  font-family: var(--gst-font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0 0 14px;
+}
+
+.application-next-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
+}
+
+.application-next-steps li {
+  position: relative;
+  font-family: var(--gst-font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gst-slate-500);
+  padding: 0 0 14px 30px;
+  counter-increment: step;
+}
+
+.application-next-steps li:last-child {
+  padding-bottom: 0;
+}
+
+.application-next-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gst-orange-500);
+  color: var(--gst-white);
+  font-family: var(--gst-font-label);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================================
+   CAREERS â€” Responsive
+   ========================================================= */
+@media (max-width: 991px) {
+  .careers-hero,
+  .job-detail-hero,
+  .application-hero {
+    padding-top: 130px;
+  }
+
+  .careers-hero .section-title p {
+    font-size: 30px;
+  }
+
+  .job-detail-title {
+    font-size: 28px;
+  }
+
+  .job-detail-aside,
+  .application-aside {
+    position: static;
+    margin-top: 32px;
+  }
+
+  .careers-board,
+  .job-detail-body-band,
+  .application-band {
+    padding-bottom: 64px;
+  }
+}
+
+@media (max-width: 575px) {
+  .careers-hero .section-title p {
+    font-size: 25px;
+  }
+
+  .job-detail-title {
+    font-size: 24px;
+  }
+
+  .careers-grid,
+  .careers-featured-strip,
+  .application-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .careers-filter-bar,
+  .application-form {
+    padding: 20px;
+  }
+
+  .job-facts li {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .job-facts .job-fact-value {
+    text-align: left;
   }
 }

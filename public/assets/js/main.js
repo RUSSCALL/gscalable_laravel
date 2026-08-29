@@ -1,26 +1,32 @@
-// Share Job Script
-function shareJob() {
-  const jobUrl = window.location.href;
-  const jobTitle = "{{ $job->title }} at Global Scalable Technologies (GST)";
-  
+/**
+ * Share a job. Title and URL are passed in by the page — this file is static
+ * JS and never sees Blade, so it cannot read the job itself.
+ */
+function shareJob(title, url) {
+  const jobUrl = url || window.location.href;
+  const jobTitle = (title || document.title) + ' at Global Scalable Technologies (GST)';
+
   if (navigator.share) {
     navigator.share({
       title: jobTitle,
       text: 'Check out this job opportunity: ' + jobTitle,
       url: jobUrl,
-    })
-    .catch(error => console.log('Error sharing:', error));
-  } else {
-    // Fallback for browsers that don't support share API
-    const tempInput = document.createElement('input');
-    document.body.appendChild(tempInput);
-    tempInput.value = jobUrl;
-    tempInput.select();
-    document.execCommand('copy');
-    document.body.removeChild(tempInput);
-    
-    alert('Job URL copied to clipboard! Share it with your friends.');
+    }).catch(function () {
+      /* The user dismissed the share sheet — nothing to do. */
+    });
+    return;
   }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(jobUrl).then(function () {
+      alert('Job link copied to clipboard.');
+    }).catch(function () {
+      window.prompt('Copy this link to share the role:', jobUrl);
+    });
+    return;
+  }
+
+  window.prompt('Copy this link to share the role:', jobUrl);
 }
 
 
@@ -250,22 +256,50 @@ function shareJob() {
     });
   })();
 
+  /**
+   * Resume upload pre-check on the application form. Guarded — the input only
+   * exists on that one page.
+   */
+  (function () {
+    const resumeInput = select('#resume_path');
+    if (!resumeInput) return;
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowed = ['pdf', 'doc', 'docx'];
+
+    // Reuse the field's own error node so the message reads like server-side
+    // validation instead of interrupting with an alert().
+    let notice = document.getElementById('resume_path_error');
+    if (!notice) {
+      notice = document.createElement('p');
+      notice.id = 'resume_path_error';
+      notice.className = 'field-error';
+      resumeInput.parentNode.appendChild(notice);
+    }
+
+    resumeInput.addEventListener('change', function () {
+      notice.textContent = '';
+      resumeInput.classList.remove('is-invalid');
+
+      if (!resumeInput.files.length) return;
+
+      const file = resumeInput.files[0];
+      const extension = file.name.split('.').pop().toLowerCase();
+
+      if (allowed.indexOf(extension) === -1) {
+        notice.textContent = 'Please upload a PDF, DOC or DOCX file.';
+        resumeInput.classList.add('is-invalid');
+        resumeInput.value = '';
+        return;
+      }
+
+      if (file.size > maxSize) {
+        notice.textContent = 'That file is larger than the 5MB limit. Please upload a smaller file.';
+        resumeInput.classList.add('is-invalid');
+        resumeInput.value = '';
+      }
+    });
+  })();
+
 })()
 
-
-
-
-
-document.getElementById('resume_path').addEventListener('change', function() {
-  const fileInput = this;
-  const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-  
-  if (fileInput.files.length > 0) {
-      const fileSize = fileInput.files[0].size;
-      
-      if (fileSize > maxSize) {
-          alert('The selected file is too large. Maximum allowed size is 5MB.');
-          fileInput.value = ''; // Clear the file input
-      }
-  }
-});

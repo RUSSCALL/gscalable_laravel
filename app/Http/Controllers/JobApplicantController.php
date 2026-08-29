@@ -12,318 +12,300 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ApplicationConfirmation;
+use App\Support\JobPostingSchema;
 
 class JobApplicantController extends Controller
 {
-        public function index(Request $request)
-        {
-            // Base query for published jobs only
-            $query = JobPosting::where('is_published', true)
-                ->where('application_deadline', '>=', now())
-                ->with(['category', 'location']);
-    
-            // Order featured jobs first, then by newest
-            $query->orderBy('is_featured', 'desc')
-                   ->orderBy('published_at', 'desc');
-    
-            // Get all categories and locations for filters
-            $categories = JobCategory::orderBy('name')->get();
-            $locations = JobLocation::orderBy('country')->orderBy('city')->get();
-    
-            // Get job listings with pagination
-            $jobPostings = $query->paginate(10);
-    
-            // Featured jobs for highlight section
-            $featuredJobs = JobPosting::where('is_published', true)
-                ->where('is_featured', true)
-                ->where('application_deadline', '>=', now())
-                ->with(['category', 'location'])
-                ->orderBy('published_at', 'desc')
-                ->take(3)
-                ->get();
-    
-            // Statistics for display
-            $stats = [
-                'total_jobs' => JobPosting::where('is_published', true)
-                    ->where('application_deadline', '>=', now())
-                    ->count(),
-                'total_companies' => JobPosting::where('is_published', true)
-                    ->distinct('created_by')
-                    ->count('created_by'),
-                'recent_jobs' => JobPosting::where('is_published', true)
-                    ->where('published_at', '>=', now()->subDays(7))
-                    ->count(),
-            ];
-    
-            return view('careers', compact(
-                'jobPostings', 
-                'featuredJobs', 
-                'categories', 
-                'locations', 
-                'stats'
-            ));
-        }
-    
+    /**
+     * Sort options the board accepts. Anything else falls back to 'newest'.
+     */
+    private const SORTS = ['newest', 'oldest', 'featured', 'salary', 'deadline'];
 
-        public function search(Request $request)
-        {
-            // Base query for published jobs only
-            $query = JobPosting::where('is_published', true)
-                ->where('application_deadline', '>=', now())
-                ->with(['category', 'location']);
-    
-            // Apply search query if provided
-            if ($request->has('search') && !empty($request->search)) {
-                $searchTerm = $request->search;
-                $query->where(function ($q) use ($searchTerm) {
-                    $q->where('title', 'LIKE', "%{$searchTerm}%")
-                      ->orWhere('description', 'LIKE', "%{$searchTerm}%")
-                      ->orWhere('requirements', 'LIKE', "%{$searchTerm}%")
-                      ->orWhere('responsibilities', 'LIKE', "%{$searchTerm}%");
-                });
+    /**
+     * The job board. Filtering, sorting and pagination all read from the
+     * query string, so every board state is a shareable, crawlable URL.
+     */
+    public function index(Request $request)
+    {
+        $query = JobPosting::active()->with(['category', 'location']);
+
+        $q = trim((string) $request->query('q', ''));
+        if ($q !== '') {
+            $query->where(function ($inner) use ($q) {
+                $inner->where('title', 'LIKE', "%{$q}%")
+                    ->orWhere('description', 'LIKE', "%{$q}%")
+                    ->orWhere('requirements', 'LIKE', "%{$q}%")
+                    ->orWhere('responsibilities', 'LIKE', "%{$q}%");
+            });
+        }
+
+        foreach (['category' => 'category_id', 'location' => 'location_id'] as $param => $column) {
+            if ($request->filled($param)) {
+                $query->where($column, $request->query($param));
             }
-    
-            // Filter by category
-            if ($request->has('category') && !empty($request->category)) {
-                $query->where('category_id', $request->category);
+        }
+
+        foreach (['employment_type', 'experience_level'] as $param) {
+            if ($request->filled($param)) {
+                $query->where($param, $request->query($param));
             }
-    
-            // Filter by location
-            if ($request->has('location') && !empty($request->location)) {
-                $query->where('location_id', $request->location);
+        }
+
+        // Salary overlap: show roles whose top of band reaches the asked-for floor.
+        if ($request->filled('salary_min')) {
+            $query->where('salary_max', '>=', $request->query('salary_min'));
+        }
+
+        $sort = in_array($request->query('sort'), self::SORTS, true)
+            ? $request->query('sort')
+            : 'newest';
+
+        switch ($sort) {
+            case 'featured':
+                $query->orderBy('is_featured', 'desc')->orderBy('published_at', 'desc');
+                break;
+            case 'oldest':
+                $query->orderBy('published_at', 'asc');
+                break;
+            case 'salary':
+                $query->orderBy('salary_max', 'desc');
+                break;
+            case 'deadline':
+                $query->orderBy('application_deadline', 'asc');
+                break;
+            default:
+                $query->orderBy('is_featured', 'desc')->orderBy('published_at', 'desc');
+                break;
+        }
+
+        $jobPostings = $query->paginate(9)->withQueryString();
+
+        $categories = JobCategory::orderBy('name')->get();
+        $locations = JobLocation::orderBy('country')->orderBy('city')->get();
+
+        // Filter vocabularies come from live, applyable roles only — never from
+        // expired or unpublished rows, which would offer dead-end options.
+        $employmentTypes = JobPosting::active()
+            ->distinct()
+            ->orderBy('employment_type')
+            ->pluck('employment_type');
+
+        $experienceLevels = JobPosting::active()
+            ->distinct()
+            ->orderBy('experience_level')
+            ->pluck('experience_level');
+
+        $featuredJobs = JobPosting::active()
+            ->featured()
+            ->with(['category', 'location'])
+            ->orderBy('published_at', 'desc')
+            ->take(3)
+            ->get();
+
+        return view('careers', [
+            'jobPostings' => $jobPostings,
+            'featuredJobs' => $featuredJobs,
+            'categories' => $categories,
+            'locations' => $locations,
+            'employmentTypes' => $employmentTypes,
+            'experienceLevels' => $experienceLevels,
+            'filters' => $this->activeFilters($request, $categories, $locations),
+            'hasFilters' => $this->hasFilters($request),
+            'sort' => $sort,
+        ]);
+    }
+
+    /**
+     * Whether any filter (not just sorting or paging) is applied. Drives the
+     * featured strip, which only makes sense on an unfiltered board.
+     */
+    private function hasFilters(Request $request): bool
+    {
+        foreach (['q', 'category', 'location', 'employment_type', 'experience_level', 'salary_min'] as $param) {
+            if ($request->filled($param)) {
+                return true;
             }
-    
-            // Filter by employment type
-            if ($request->has('employment_type') && !empty($request->employment_type)) {
-                $query->where('employment_type', $request->employment_type);
-            }
-    
-            // Filter by experience level
-            if ($request->has('experience_level') && !empty($request->experience_level)) {
-                $query->where('experience_level', $request->experience_level);
-            }
-    
-            // Filter by salary range
-            if ($request->has('salary_min') && !empty($request->salary_min)) {
-                $query->where('salary_max', '>=', $request->salary_min);
-            }
-            
-            if ($request->has('salary_max') && !empty($request->salary_max)) {
-                $query->where('salary_min', '<=', $request->salary_max);
-            }
-    
-            // Sort results
-            $sortBy = $request->sort ?? 'newest';
-            
-            switch ($sortBy) {
-                case 'featured':
-                    $query->orderBy('is_featured', 'desc')->orderBy('published_at', 'desc');
-                    break;
-                case 'oldest':
-                    $query->orderBy('published_at', 'asc');
-                    break;
-                case 'salary':
-                    $query->orderBy('salary_max', 'desc');
-                    break;
-                case 'deadline':
-                    $query->orderBy('application_deadline', 'asc');
-                    break;
-                case 'newest':
+        }
+
+        return false;
+    }
+
+    /**
+     * Build the removable filter chips: a human label plus the URL for the
+     * same board with just that one filter dropped.
+     */
+    private function activeFilters(Request $request, $categories, $locations): array
+    {
+        $chips = [];
+        $current = $request->query();
+
+        $label = function (string $param) use ($request, $categories, $locations): ?string {
+            $value = $request->query($param);
+
+            switch ($param) {
+                case 'q':
+                    return '"' . $value . '"';
+                case 'category':
+                    return optional($categories->firstWhere('id', (int) $value))->name;
+                case 'location':
+                    $location = $locations->firstWhere('id', (int) $value);
+                    if (! $location) {
+                        return null;
+                    }
+                    return $location->is_remote
+                        ? 'Remote'
+                        : trim($location->city . ', ' . $location->country, ', ');
+                case 'salary_min':
+                    return 'From $' . number_format((float) $value);
                 default:
-                    $query->orderBy('published_at', 'desc');
-                    break;
+                    return $value;
             }
-    
-            // Get all categories and locations for filters
-            $categories = JobCategory::orderBy('name')->get();
-            $locations = JobLocation::orderBy('country')->orderBy('city')->get();
-            
-            // Employment types and experience levels for filters
-            $employmentTypes = JobPosting::distinct()->pluck('employment_type');
-            $experienceLevels = JobPosting::distinct()->pluck('experience_level');
-    
-            // Get search results with pagination
-            $jobPostings = $query->paginate(10)->withQueryString();
-    
-            return view('careers', compact(
-                'jobPostings', 
-                'categories', 
-                'locations',
-                'employmentTypes',
-                'experienceLevels'
-            ));
-        }
-    
+        };
 
-
-        public function show($slug)
-        {
-            $job = JobPosting::where('slug', $slug)
-                ->where('is_published', true)
-                ->with(['category', 'location', 'creator'])
-                ->firstOrFail();
-    
-            // Increment view count
-            DB::table('job_postings')
-                ->where('id', $job->id)
-                ->increment('views_count');
-
-            
-            
-            // Check if the current user has already applied
-            $hasApplied = false;
-            if (auth()->check()) {
-                $hasApplied = JobApplication::where('job_posting_id', $job->id)
-                    ->where('user_id', auth()->id())
-                    ->exists();
+        foreach (['q', 'category', 'location', 'employment_type', 'experience_level', 'salary_min'] as $param) {
+            if (! $request->filled($param)) {
+                continue;
             }
-            
-            // Related jobs in the same category
-            $relatedJobs = JobPosting::where('is_published', true)
-                ->where('category_id', $job->category_id)
-                ->where('id', '!=', $job->id)
-                ->where('application_deadline', '>=', now())
-                ->with(['category', 'location'])
-                ->take(3)
-                ->get();
-    
-            return view('job-posting', compact('job', 'relatedJobs', 'hasApplied'));
-            // return view('job-posting');
-        }
 
-        
-        public function apply($slug)
-        {
-            // Find the job posting by slug
-            $job = JobPosting::with(['category', 'location'])
-                ->where('slug', $slug)
-                ->where('is_published', true)
-                ->where('application_deadline', '>=', now())
-                ->firstOrFail();
-            
-            // Check if the authenticated user has already applied for this job
-            if (auth()->check()) {
-                $hasApplied = JobApplication::where('job_posting_id', $job->id)
-                    ->where('user_id', auth()->id())
-                    ->exists();
-                
-                if ($hasApplied) {
-                    return redirect()->route('jobapplicant.show', $job->slug)
-                        ->with('error', 'You have already applied for this position.');
-                }
+            $text = $label($param);
+            if ($text === null) {
+                continue;
             }
-            
-            // Increment view count (optional for the application page)
-            $job->increment('views_count');
-            
-            // Get the job details needed for the application form
-            $jobData = [
-                'id' => $job->id,
-                'title' => $job->title,
-                'slug' => $job->slug,
-                'employment_type' => $job->employment_type,
-                'experience_level' => $job->experience_level,
-                'salary_min' => $job->salary_min,
-                'salary_max' => $job->salary_max,
-                'salary_currency' => $job->salary_currency,
-                'salary_period' => $job->salary_period,
-                'application_deadline' => $job->application_deadline,
-                'location' => $job->location,
-                'category' => $job->category,
+
+            $without = $current;
+            unset($without[$param], $without['page']);
+
+            $chips[] = [
+                'label' => $text,
+                'remove_url' => route('careers', $without),
             ];
-            
-            return view('application-form', [
-                'job' => $job,
-            ]);
         }
 
+        return $chips;
+    }
 
-        public function store(Request $request){
+    /**
+     * A single job posting.
+     */
+    public function show($slug)
+    {
+        $job = JobPosting::where('slug', $slug)
+            ->published()
+            ->with(['category', 'location'])
+            ->firstOrFail();
 
-            
-            // Check if the user has already applied
-            if (auth()->check()) {
-                $hasApplied = JobApplication::where('job_posting_id', $request->job_posting_id)
-                    ->where('user_id', auth()->id())
-                    ->exists();
-                
-                if ($hasApplied) {
-                    return redirect()->back()
-                        ->withInput()
-                        ->with('error', 'You have already applied for this position.');
-                }
-            }
+        // Query-builder increment so the view count never touches updated_at.
+        DB::table('job_postings')->where('id', $job->id)->increment('views_count');
 
-            // Validate the request data
-            $validated = $request->validate([
-                'job_posting_id' => 'required|exists:job_postings,id',
-                'first_name' => 'required|string|max:100',
-                'last_name' => 'required|string|max:100',
-                'email' => 'required|email',
-                'phone' => 'required|string|max:30',
-                'cover_letter' => 'nullable|string',
-                'resume_path' => 'required|file|mimes:pdf,doc,docx|max:5120', // 5MB max
-                'portfolio_url' => 'nullable|url',
-                'linkedin_url' => 'nullable|url',
-                'github_url' => 'nullable|url',
-                'additional_information' => 'nullable|string',
-                'skills' => 'nullable|string',
-                'current_company' => 'nullable|string',
-                'current_position' => 'nullable|string',
-                'education' => 'required|string',
-                'highest_degree' => 'required|string',
-                'expected_salary' => 'nullable|min:30000|numeric',
-                'years_of_experience' => 'required|integer',
-                'referral_source' => 'nullable|string',
-                'terms_agree' => 'required|accepted',
-            ]);
-
-
-            // Handle file upload for resume
-            if ($request->hasFile('resume_path')) {
-                $resumePath = $request->file('resume_path')->store('resumes', 'public');
-                $validated['resume_path'] = $resumePath;
-            }
-            
-            // Add user_id if authenticated
-            if (auth()->check()) {
-                $validated['user_id'] = auth()->id();
-            }
-            
-            // Create job application
-            $application = JobApplication::create($validated);
-            
-            // Increment application count for the job posting
-            JobPosting::where('id', $request->job_posting_id)->increment('applications_count');
-
-            // Get the job posting details
-            $jobPosting = JobPosting::find($request->job_posting_id);
-
-            // Send confirmation email
-            try {
-                Mail::to($application->email)
-                    ->send(new ApplicationConfirmation($application, $jobPosting));
-            } catch (\Exception $e) {
-                // Log the error but don't prevent the application from being submitted
-                Log::error('Failed to send application confirmation email: ' . $e->getMessage());
-            }
-            
-            // Redirect with success message
-            return redirect()->route('careers', $application->id)
-                ->with('success', 'Your application has been submitted successfully!');
+        $hasApplied = false;
+        if (auth()->check()) {
+            $hasApplied = JobApplication::where('job_posting_id', $job->id)
+                ->where('user_id', auth()->id())
+                ->exists();
         }
 
+        $relatedJobs = JobPosting::active()
+            ->where('category_id', $job->category_id)
+            ->where('id', '!=', $job->id)
+            ->with(['category', 'location'])
+            ->orderBy('published_at', 'desc')
+            ->take(3)
+            ->get();
 
-        public function getEmploymentTypes()
-        {
-            $types = JobPosting::distinct()->pluck('employment_type');
-            return response()->json($types);
-        }
-    
+        return view('job-posting', [
+            'job' => $job,
+            'relatedJobs' => $relatedJobs,
+            'hasApplied' => $hasApplied,
+            'jsonLd' => JobPostingSchema::for($job),
+        ]);
+    }
 
-        public function getExperienceLevels()
-        {
-            $levels = JobPosting::distinct()->pluck('experience_level');
-            return response()->json($levels);
+    /**
+     * The application form for a job that is still open.
+     */
+    public function apply($slug)
+    {
+        $job = JobPosting::with(['category', 'location'])
+            ->where('slug', $slug)
+            ->active()
+            ->firstOrFail();
+
+        if (auth()->check()) {
+            $hasApplied = JobApplication::where('job_posting_id', $job->id)
+                ->where('user_id', auth()->id())
+                ->exists();
+
+            if ($hasApplied) {
+                return redirect()->route('careers.show', $job->slug)
+                    ->with('error', 'You have already applied for this position.');
+            }
         }
+
+        return view('application-form', [
+            'job' => $job,
+        ]);
+    }
+
+    /**
+     * Persist an application against the job in the URL.
+     */
+    public function store(Request $request, $slug)
+    {
+        $job = JobPosting::where('slug', $slug)->active()->firstOrFail();
+
+        if (auth()->check()) {
+            $hasApplied = JobApplication::where('job_posting_id', $job->id)
+                ->where('user_id', auth()->id())
+                ->exists();
+
+            if ($hasApplied) {
+                return redirect()->route('careers.show', $job->slug)
+                    ->with('error', 'You have already applied for this position.');
+            }
+        }
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'email' => 'required|email|max:191',
+            'phone' => 'required|string|max:30',
+            'cover_letter' => 'nullable|string',
+            'resume_path' => 'required|file|mimes:pdf,doc,docx|max:5120', // 5MB
+            'portfolio_url' => 'nullable|url|max:191',
+            'linkedin_url' => 'nullable|url|max:191',
+            'github_url' => 'nullable|url|max:191',
+            'additional_information' => 'nullable|string',
+            'skills' => 'nullable|string',
+            'current_company' => 'nullable|string|max:191',
+            'current_position' => 'nullable|string|max:191',
+            'education' => 'required|string|max:191',
+            'highest_degree' => 'required|string|max:191',
+            'expected_salary' => 'nullable|numeric|min:0',
+            'years_of_experience' => 'required|integer|min:0',
+            'referral_source' => 'nullable|string|max:191',
+            'terms_agree' => 'required|accepted',
+        ]);
+
+        $validated['job_posting_id'] = $job->id;
+        $validated['resume_path'] = $request->file('resume_path')->store('resumes', 'public');
+
+        if (auth()->check()) {
+            $validated['user_id'] = auth()->id();
+        }
+
+        $application = JobApplication::create($validated);
+
+        JobPosting::where('id', $job->id)->increment('applications_count');
+
+        try {
+            Mail::to($application->email)
+                ->send(new ApplicationConfirmation($application, $job));
+        } catch (\Exception $e) {
+            // A mail failure must never lose an application that is already saved.
+            Log::error('Failed to send application confirmation email: ' . $e->getMessage());
+        }
+
+        return redirect()->route('careers.show', $job->slug)
+            ->with('success', 'Your application has been submitted. Reference #' . $application->id . '.');
+    }
 }
