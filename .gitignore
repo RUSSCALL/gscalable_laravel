@@ -19,3 +19,7 @@ yarn-error.log
 /.vscode
 /.claude
 *.zip
+
+# Internal engineering notes — deliberation and onboarding reference only.
+# Deliberately untracked so they never ship to production.
+/docs/internal/
