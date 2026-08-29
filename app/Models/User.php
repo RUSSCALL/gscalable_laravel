@@ -46,4 +46,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function role(){
         return $this->hasOne(Role::class , 'id' , 'role_id');
     }
+
+    /**
+     * Applications submitted by this user, newest first. Guest applications
+     * are linked here by email when an account is claimed.
+     */
+    public function jobApplications()
+    {
+        return $this->hasMany(JobApplication::class)->latest();
+    }
 }

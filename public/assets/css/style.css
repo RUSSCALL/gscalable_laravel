@@ -3156,3 +3156,194 @@ section {
     text-align: left;
   }
 }
+
+/* =========================================================
+   GST CAREERS â€” Phase 2: guest apply, confirmation, account claim
+   ========================================================= */
+
+/* Honeypot. Moved off-screen rather than display:none, which some bots
+   detect and skip, and hidden from assistive tech via aria-hidden. */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.application-signin-hint {
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--gst-slate-500);
+  background: var(--gst-white);
+  border: 1px solid var(--gst-line);
+  border-left: 3px solid var(--gst-orange-500);
+  border-radius: 4px;
+  padding: 14px 18px;
+  margin: 0 0 24px;
+}
+
+.application-signin-hint a {
+  color: var(--gst-orange-600);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* -------- Reference card -------- */
+.confirm-reference {
+  padding: 28px 30px;
+  margin-bottom: 24px;
+  border-left: 3px solid var(--gst-orange-500);
+}
+
+.confirm-reference:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--gst-line);
+  border-left-color: var(--gst-orange-500);
+}
+
+.confirm-reference-label {
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gst-slate-400);
+  margin: 0 0 8px;
+}
+
+.confirm-reference-value {
+  font-family: var(--gst-font-heading);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--gst-navy-900);
+  margin: 0 0 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.confirm-reference-note {
+  font-family: var(--gst-font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gst-slate-500);
+  margin: 0;
+}
+
+/* -------- Account claim card -------- */
+.claim-card {
+  padding: 28px 30px;
+  margin-bottom: 24px;
+}
+
+.claim-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--gst-line);
+}
+
+.claim-card h2 {
+  font-family: var(--gst-font-heading);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0 0 10px;
+}
+
+.claim-card > p {
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--gst-slate-500);
+  margin: 0 0 22px;
+}
+
+.claim-field {
+  margin-bottom: 18px;
+}
+
+.claim-field label {
+  display: block;
+  font-family: var(--gst-font-label);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gst-slate-500);
+  margin-bottom: 6px;
+}
+
+.claim-field input {
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  color: var(--gst-slate-700);
+  background: var(--gst-white);
+  border: 1px solid var(--gst-line);
+  border-radius: 4px;
+  padding: 11px 14px;
+  width: 100%;
+  transition: border-color 0.25s ease;
+}
+
+.claim-field input:focus {
+  outline: none;
+  border-color: var(--gst-orange-500);
+  box-shadow: 0 0 0 3px rgba(242, 134, 29, 0.18);
+}
+
+.claim-field input:disabled {
+  background: var(--gst-off-white);
+  color: var(--gst-slate-400);
+  cursor: not-allowed;
+}
+
+.claim-field input.is-invalid {
+  border-color: #c0392b;
+}
+
+.claim-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.claim-actions .btn-gst-primary {
+  border: none;
+  cursor: pointer;
+}
+
+/* The decline path is plainly visible, so the nudge never reads as required. */
+.claim-decline {
+  font-family: var(--gst-font-label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gst-slate-500);
+  text-decoration: underline;
+}
+
+.claim-decline:hover,
+.claim-decline:focus-visible {
+  color: var(--gst-orange-500);
+}
+
+@media (max-width: 575px) {
+  .confirm-reference,
+  .claim-card {
+    padding: 22px 20px;
+  }
+
+  .confirm-reference-value {
+    font-size: 25px;
+  }
+
+  .claim-actions {
+    gap: 14px;
+  }
+}

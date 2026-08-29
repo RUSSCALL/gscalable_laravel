@@ -1,10 +1,20 @@
 @extends('main_layout')
 
 @php
+    use Illuminate\Support\Facades\Crypt;
+
     $deadline = \Carbon\Carbon::parse($job->application_deadline)->endOfDay();
     $locationLabel = $job->location
         ? ($job->location->is_remote ? 'Remote' : $job->location->city . ', ' . $job->location->country)
         : 'Location flexible';
+
+    // Signed-in applicants get their known details prefilled; old() still wins
+    // so a failed submission never discards what they typed.
+    $user = auth()->user();
+    $nameParts = $user ? preg_split('/\s+/', trim($user->name), 2) : [];
+    $prefillFirst = $nameParts[0] ?? '';
+    $prefillLast = $nameParts[1] ?? '';
+    $prefillEmail = $user->email ?? '';
 @endphp
 
 @section('title', 'Apply — ' . $job->title . ' — Global Scalable Technologies')
@@ -39,9 +49,26 @@
                     </div>
                 @endif
 
+                @guest
+                    <p class="application-signin-hint">
+                        Applying takes a few minutes and no account is needed.
+                        <a href="{{ route('login') }}">Already have one? Sign in</a> to fill this in faster.
+                    </p>
+                @endguest
+
                 <form action="{{ route('careers.apply.store', $job->slug) }}" method="POST"
                       enctype="multipart/form-data" class="application-form gst-card-base" id="application-form">
                     @csrf
+
+                    {{-- Bot defenses. The honeypot is moved off-screen rather than
+                         display:none, which some bots detect and skip, and is hidden
+                         from assistive tech. The timestamp is encrypted so it cannot
+                         be back-dated by the client. --}}
+                    <div class="hp-field" aria-hidden="true">
+                        <label for="website">Leave this field blank</label>
+                        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                    </div>
+                    <input type="hidden" name="_ts" value="{{ Crypt::encryptString(time()) }}">
 
                     <!-- Personal information -->
                     <div class="application-section">
@@ -50,21 +77,24 @@
                             <div>
                                 <label for="first_name">First name <span class="required-mark">*</span></label>
                                 <input type="text" id="first_name" name="first_name"
-                                       value="{{ old('first_name') }}" required
+                                       value="{{ old('first_name', $prefillFirst) }}" required
+                                       autocomplete="given-name"
                                        @class(['is-invalid' => $errors->has('first_name')])>
                                 @error('first_name') <p class="field-error">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label for="last_name">Last name <span class="required-mark">*</span></label>
                                 <input type="text" id="last_name" name="last_name"
-                                       value="{{ old('last_name') }}" required
+                                       value="{{ old('last_name', $prefillLast) }}" required
+                                       autocomplete="family-name"
                                        @class(['is-invalid' => $errors->has('last_name')])>
                                 @error('last_name') <p class="field-error">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label for="email">Email address <span class="required-mark">*</span></label>
                                 <input type="email" id="email" name="email"
-                                       value="{{ old('email') }}" required
+                                       value="{{ old('email', $prefillEmail) }}" required
+                                       autocomplete="email"
                                        @class(['is-invalid' => $errors->has('email')])>
                                 @error('email') <p class="field-error">{{ $message }}</p> @enderror
                             </div>

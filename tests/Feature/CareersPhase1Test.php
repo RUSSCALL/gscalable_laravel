@@ -5,10 +5,6 @@ namespace Tests\Feature;
 use App\Models\JobPosting;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -155,11 +151,9 @@ class CareersPhase1Test extends TestCase
             ->assertRedirect(route('careers.apply', $job->slug));
     }
 
-    public function test_apply_page_requires_authentication_in_phase_one(): void
-    {
-        $job = $this->openJob();
-        $this->get(route('careers.apply', $job->slug))->assertRedirect();
-    }
+    // The Phase 1 test asserting that applying required an account has been
+    // removed: Phase 2 deliberately opened the apply routes to guests.
+    // CareersPhase2Test covers the guest flow that replaced it.
 
     public function test_apply_form_marks_server_required_fields_as_required(): void
     {

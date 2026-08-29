@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\JobApplicantController;
+use App\Http\Controllers\ApplicantAccountController;
 use App\Http\Controllers\AuthRedirectsController;
 
 /*
@@ -63,12 +64,21 @@ Route::middleware(['auth' , 'verified' , 'can:user-is-admin'])->group(function()
 | own filtering from the query string, so there is no separate search route.
 */
 Route::get('/careers', [JobApplicantController::class, 'index'])->name('careers');
+
+// Declared before /careers/{slug} so the wildcard cannot swallow it.
+Route::post('/careers/claim-account', [ApplicantAccountController::class, 'store'])
+    ->middleware('throttle:6,1')
+    ->name('careers.claim');
+
 Route::get('/careers/{slug}', [JobApplicantController::class, 'show'])->name('careers.show');
 
-Route::middleware(['auth' , 'verified' ,'can:user-is-an-applicant'])->group(function(){
-    Route::get('/careers/{slug}/apply', [JobApplicantController::class, 'apply'])->name('careers.apply');
-    Route::post('/careers/{slug}/apply', [JobApplicantController::class, 'store'])->name('careers.apply.store');
-});
+// Applying is open to guests: an account is offered after the fact, never
+// required to apply. Throttled as a backstop the honeypot cannot provide.
+Route::get('/careers/{slug}/apply', [JobApplicantController::class, 'apply'])->name('careers.apply');
+Route::post('/careers/{slug}/apply', [JobApplicantController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('careers.apply.store');
+Route::get('/careers/{slug}/applied', [JobApplicantController::class, 'applied'])->name('careers.applied');
 
 // Legacy URLs — keep old links, bookmarks and inbound SEO alive.
 Route::permanentRedirect('/applicantjobs/search', '/careers');

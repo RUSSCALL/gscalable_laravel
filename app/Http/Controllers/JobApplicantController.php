@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ApplicationConfirmation;
+use App\Models\User;
+use App\Http\Requests\StoreJobApplicationRequest;
 use App\Support\JobPostingSchema;
 
 class JobApplicantController extends Controller
@@ -221,7 +223,8 @@ class JobApplicantController extends Controller
     }
 
     /**
-     * The application form for a job that is still open.
+     * The application form for a job that is still open. Open to guests —
+     * an account is offered after applying, never required to apply.
      */
     public function apply($slug)
     {
@@ -230,15 +233,9 @@ class JobApplicantController extends Controller
             ->active()
             ->firstOrFail();
 
-        if (auth()->check()) {
-            $hasApplied = JobApplication::where('job_posting_id', $job->id)
-                ->where('user_id', auth()->id())
-                ->exists();
-
-            if ($hasApplied) {
-                return redirect()->route('careers.show', $job->slug)
-                    ->with('error', 'You have already applied for this position.');
-            }
+        if (auth()->check() && $this->alreadyApplied($job, auth()->user()->email)) {
+            return redirect()->route('careers.show', $job->slug)
+                ->with('error', 'You have already applied for this position.');
         }
 
         return view('application-form', [
@@ -247,53 +244,55 @@ class JobApplicantController extends Controller
     }
 
     /**
+     * Has this job already been applied to by this user or this email address?
+     * Checking the email as well as the account is what stops a guest
+     * submitting the same application repeatedly.
+     */
+    private function alreadyApplied(JobPosting $job, ?string $email): bool
+    {
+        return JobApplication::where('job_posting_id', $job->id)
+            ->where(function ($query) use ($email) {
+                if (auth()->check()) {
+                    $query->where('user_id', auth()->id());
+                }
+
+                if ($email) {
+                    $query->orWhere('email', $email);
+                }
+            })
+            ->exists();
+    }
+
+    /**
      * Persist an application against the job in the URL.
      */
-    public function store(Request $request, $slug)
+    public function store(StoreJobApplicationRequest $request, $slug)
     {
         $job = JobPosting::where('slug', $slug)->active()->firstOrFail();
 
-        if (auth()->check()) {
-            $hasApplied = JobApplication::where('job_posting_id', $job->id)
-                ->where('user_id', auth()->id())
-                ->exists();
-
-            if ($hasApplied) {
-                return redirect()->route('careers.show', $job->slug)
-                    ->with('error', 'You have already applied for this position.');
-            }
+        // Bots get one neutral response and no detail about which check caught
+        // them. Never a fake reference number: with nothing persisted there is
+        // no reference to show, and inventing one risks handing out a value
+        // belonging to a real applicant.
+        if ($request->looksAutomated()) {
+            return redirect()->route('careers.show', $job->slug)
+                ->with('error', "Thanks — we couldn't process that submission. Please try again.");
         }
 
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'required|email|max:191',
-            'phone' => 'required|string|max:30',
-            'cover_letter' => 'nullable|string',
-            'resume_path' => 'required|file|mimes:pdf,doc,docx|max:5120', // 5MB
-            'portfolio_url' => 'nullable|url|max:191',
-            'linkedin_url' => 'nullable|url|max:191',
-            'github_url' => 'nullable|url|max:191',
-            'additional_information' => 'nullable|string',
-            'skills' => 'nullable|string',
-            'current_company' => 'nullable|string|max:191',
-            'current_position' => 'nullable|string|max:191',
-            'education' => 'required|string|max:191',
-            'highest_degree' => 'required|string|max:191',
-            'expected_salary' => 'nullable|numeric|min:0',
-            'years_of_experience' => 'required|integer|min:0',
-            'referral_source' => 'nullable|string|max:191',
-            'terms_agree' => 'required|accepted',
-        ]);
-
-        $validated['job_posting_id'] = $job->id;
-        $validated['resume_path'] = $request->file('resume_path')->store('resumes', 'public');
-
-        if (auth()->check()) {
-            $validated['user_id'] = auth()->id();
+        if ($this->alreadyApplied($job, $request->input('email'))) {
+            return redirect()->route('careers.show', $job->slug)
+                ->with('error', 'An application for this role has already been submitted with that email address.');
         }
 
-        $application = JobApplication::create($validated);
+        $data = $request->applicationData();
+        $data['job_posting_id'] = $job->id;
+        $data['resume_path'] = $request->file('resume_path')->store('resumes', 'public');
+
+        if (auth()->check()) {
+            $data['user_id'] = auth()->id();
+        }
+
+        $application = JobApplication::create($data);
 
         JobPosting::where('id', $job->id)->increment('applications_count');
 
@@ -305,7 +304,41 @@ class JobApplicantController extends Controller
             Log::error('Failed to send application confirmation email: ' . $e->getMessage());
         }
 
-        return redirect()->route('careers.show', $job->slug)
-            ->with('success', 'Your application has been submitted. Reference #' . $application->id . '.');
+        // Held for the confirmation page and the account-claim guard. The email
+        // is what claim-account checks the posted address against.
+        session()->put('recent_application', [
+            'id' => $application->id,
+            'reference' => $application->reference,
+            'email' => $application->email,
+            'first_name' => $application->first_name,
+            'last_name' => $application->last_name,
+            'job_slug' => $job->slug,
+        ]);
+
+        return redirect()->route('careers.applied', $job->slug);
+    }
+
+    /**
+     * Confirmation page. Reachable only straight after a successful submit —
+     * it is not a page anyone can navigate to for someone else's reference.
+     */
+    public function applied($slug)
+    {
+        $job = JobPosting::where('slug', $slug)->published()->firstOrFail();
+        $recent = session('recent_application');
+
+        if (! $recent || ($recent['job_slug'] ?? null) !== $job->slug) {
+            return redirect()->route('careers.show', $job->slug);
+        }
+
+        // Offer the account only when it could actually be created.
+        $canClaim = ! auth()->check()
+            && ! User::where('email', $recent['email'])->exists();
+
+        return view('application-confirmed', [
+            'job' => $job,
+            'application' => $recent,
+            'canClaim' => $canClaim,
+        ]);
     }
 }

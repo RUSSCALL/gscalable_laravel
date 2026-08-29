@@ -46,6 +46,49 @@ class JobApplication extends Model
     ];
 
     /**
+     * `reference` is intentionally absent from $fillable — it identifies the
+     * application to the applicant and must never be settable from input.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $application) {
+            if (empty($application->reference)) {
+                $application->reference = static::generateReference();
+            }
+        });
+    }
+
+    /**
+     * An opaque public reference. The auto-increment id is not used for this:
+     * sequential numbers would leak total application volume to anyone who
+     * applies twice.
+     */
+    public static function generateReference(): string
+    {
+        // Ambiguous characters (0/O, 1/I) excluded so a reference survives
+        // being read over the phone or copied off a screen.
+        $alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+
+        do {
+            $token = '';
+            for ($i = 0; $i < 8; $i++) {
+                $token .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+            $reference = 'GST-' . substr($token, 0, 4) . '-' . substr($token, 4, 4);
+        } while (static::where('reference', $reference)->exists());
+
+        return $reference;
+    }
+
+    /**
+     * Look an application up by the reference an applicant quotes.
+     */
+    public function scopeReference($query, string $reference)
+    {
+        return $query->where('reference', strtoupper(trim($reference)));
+    }
+
+    /**
      * Get the job posting that owns the application.
      */
     public function jobPosting()
