@@ -10,6 +10,16 @@
     $locationLabel = $job->location
         ? ($job->location->is_remote ? 'Remote' : $job->location->city . ', ' . $job->location->country)
         : 'Location flexible';
+
+    // Send the visitor back where they actually came from. The referrer is
+    // only ever compared against our own dashboard path and never used as the
+    // href itself, so it cannot be pointed at an off-site URL.
+    $cameFromDashboard = Str::startsWith(
+        url()->previous(),
+        route('applicant.dashboard')
+    );
+    $backUrl = $cameFromDashboard ? route('applicant.dashboard') : route('careers');
+    $backLabel = $cameFromDashboard ? 'Your applications' : 'All open roles';
 @endphp
 
 @section('title', $job->title . ' — Careers — Global Scalable Technologies')
@@ -30,8 +40,8 @@
 <section class="job-detail-hero">
     <div class="container" data-aos="fade-up">
         <div class="careers-back-row">
-            <a href="{{ route('careers') }}" class="careers-back-link">
-                <i class="bi bi-arrow-left"></i> All open roles
+            <a href="{{ $backUrl }}" class="careers-back-link">
+                <i class="bi bi-arrow-left"></i> {{ $backLabel }}
             </a>
         </div>
 

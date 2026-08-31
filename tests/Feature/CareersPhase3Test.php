@@ -179,6 +179,39 @@ class CareersPhase3Test extends TestCase
         }
     }
 
+    // ------------------------------------------------------------ back link
+
+    public function test_the_job_page_returns_to_the_dashboard_when_opened_from_it(): void
+    {
+        $user = $this->applicantWithApplications();
+        $job = JobApplication::where('user_id', $user->id)->first()->jobPosting;
+
+        $this->actingAs($user)
+            ->get(route('careers.show', $job->slug), ['referer' => route('applicant.dashboard')])
+            ->assertOk()
+            ->assertSee('Your applications')
+            ->assertSee(route('applicant.dashboard'), false);
+    }
+
+    public function test_the_job_page_returns_to_the_board_when_opened_from_it(): void
+    {
+        $job = JobPosting::active()->first();
+
+        $this->get(route('careers.show', $job->slug), ['referer' => route('careers')])
+            ->assertOk()
+            ->assertSee('All open roles');
+    }
+
+    public function test_an_offsite_referrer_cannot_redirect_the_back_link(): void
+    {
+        $job = JobPosting::active()->first();
+
+        $this->get(route('careers.show', $job->slug), ['referer' => 'https://evil.example/phish'])
+            ->assertOk()
+            ->assertSee('All open roles')
+            ->assertDontSee('evil.example', false);
+    }
+
     // ------------------------------------------------------- post-login route
 
     public function test_an_applicant_lands_on_the_dashboard_after_signing_in(): void
