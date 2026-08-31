@@ -2291,7 +2291,10 @@ section {
   background: var(--gst-off-white);
   border-top: 1px solid var(--gst-line);
   border-bottom: 1px solid var(--gst-line);
-  padding: 48px 0 80px;
+  /* Bottom padding is deliberately shorter than the top: the alert band that
+     always follows adds its own leading space, and 80px here left a visibly
+     empty grey slab between the pagination and the alert card. */
+  padding: 48px 0 48px;
 }
 
 /* -------- Shared form field language (mirrors .gst-contact-form) -------- */
@@ -3567,12 +3570,14 @@ section {
 
 /* -------- Alert band -------- */
 .careers-alert-band {
-  padding: 0 0 90px;
+  padding: 56px 0 90px;
   background: var(--gst-white);
 }
 
+/* Slightly deeper at the foot than the head: the fineprint carries its own
+   top margin, so equal padding reads as bottom-heavy. */
 .careers-alert-card {
-  padding: 40px 44px;
+  padding: 40px 44px 44px;
 }
 
 /* A record, not a link â€” suppress the shared card hover lift. */
@@ -3596,7 +3601,8 @@ section {
   line-height: 1.65;
   color: var(--gst-slate-500);
   max-width: 60ch;
-  margin: 0 0 26px;
+  /* Enough to read the pitch and the form as two groups, not one block. */
+  margin: 0 0 32px;
 }
 
 .careers-alert-fields {
@@ -3659,7 +3665,7 @@ section {
   font-family: var(--gst-font-body);
   font-size: 12.5px;
   color: var(--gst-slate-400);
-  margin: 20px 0 0;
+  margin: 18px 0 0;
 }
 
 .careers-alert-fineprint a {
@@ -3686,12 +3692,20 @@ section {
 }
 
 @media (max-width: 575px) {
+  .careers-board {
+    padding-bottom: 36px;
+  }
+
   .careers-alert-band {
-    padding-bottom: 60px;
+    padding: 40px 0 60px;
   }
 
   .careers-alert-card {
-    padding: 28px 22px;
+    padding: 28px 22px 30px;
+  }
+
+  .careers-alert-copy p {
+    margin-bottom: 26px;
   }
 
   .careers-alert-fields {
