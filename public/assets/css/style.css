@@ -3514,3 +3514,187 @@ section {
     margin-top: 6px;
   }
 }
+
+/* =========================================================
+   GST CAREERS â€” Phase 4: flash messages + job-alert capture
+   ========================================================= */
+
+.careers-flash-wrap {
+  margin-top: 28px;
+}
+
+.careers-flash {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--gst-line);
+  background: var(--gst-off-white);
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--gst-slate-700);
+  margin-bottom: 12px;
+}
+
+.careers-flash i {
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--gst-slate-400);
+}
+
+.careers-flash--success {
+  background: #e7f2ec;
+  border-color: #bcd9c9;
+  color: #1f5c41;
+}
+
+.careers-flash--success i {
+  color: #2f7d59;
+}
+
+.careers-flash--error {
+  background: #fdeeee;
+  border-color: #f3c9c9;
+  color: #8a2b2b;
+}
+
+.careers-flash--error i {
+  color: #b93b3b;
+}
+
+/* -------- Alert band -------- */
+.careers-alert-band {
+  padding: 0 0 90px;
+  background: var(--gst-white);
+}
+
+.careers-alert-card {
+  padding: 40px 44px;
+}
+
+/* A record, not a link â€” suppress the shared card hover lift. */
+.careers-alert-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--gst-line);
+}
+
+.careers-alert-copy h2 {
+  font-family: var(--gst-font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0 0 8px;
+}
+
+.careers-alert-copy p {
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--gst-slate-500);
+  max-width: 60ch;
+  margin: 0 0 26px;
+}
+
+.careers-alert-fields {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 18px;
+  align-items: end;
+}
+
+.careers-alert-field label {
+  display: block;
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gst-slate-500);
+  margin-bottom: 8px;
+}
+
+.careers-alert-field label span {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--gst-slate-400);
+}
+
+.careers-alert-field input,
+.careers-alert-field select {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: var(--gst-font-body);
+  font-size: 14px;
+  color: var(--gst-slate-700);
+  background: var(--gst-white);
+  border: 1px solid var(--gst-line);
+  border-radius: 6px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.careers-alert-field input:focus,
+.careers-alert-field select:focus {
+  outline: none;
+  border-color: var(--gst-orange-500);
+  box-shadow: 0 0 0 3px rgba(242, 134, 29, 0.15);
+}
+
+.careers-alert-submit .btn-gst-primary {
+  white-space: nowrap;
+}
+
+.careers-alert-error {
+  font-family: var(--gst-font-body);
+  font-size: 12.5px;
+  color: #b93b3b;
+  margin: 6px 0 0;
+}
+
+.careers-alert-fineprint {
+  font-family: var(--gst-font-body);
+  font-size: 12.5px;
+  color: var(--gst-slate-400);
+  margin: 20px 0 0;
+}
+
+.careers-alert-fineprint a {
+  color: var(--gst-slate-500);
+  text-decoration: underline;
+}
+
+.careers-alert-fineprint a:hover {
+  color: var(--gst-orange-600);
+}
+
+@media (max-width: 991px) {
+  .careers-alert-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .careers-alert-submit {
+    grid-column: 1 / -1;
+  }
+
+  .careers-alert-submit .btn-gst-primary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .careers-alert-band {
+    padding-bottom: 60px;
+  }
+
+  .careers-alert-card {
+    padding: 28px 22px;
+  }
+
+  .careers-alert-fields {
+    grid-template-columns: 1fr;
+  }
+}

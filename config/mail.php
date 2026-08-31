@@ -123,6 +123,19 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Postal Address
+    |--------------------------------------------------------------------------
+    |
+    | Shown in the footer of every email. Bulk mail (job alerts) legally needs
+    | a physical mailing address under CAN-SPAM, so set MAIL_POSTAL_ADDRESS
+    | before sending any alert campaign.
+    |
+    */
+
+    'postal_address' => env('MAIL_POSTAL_ADDRESS'),
+
     'markdown' => [
         'theme' => 'default',
 

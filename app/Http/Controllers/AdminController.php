@@ -9,6 +9,8 @@ use App\Models\JobLocation;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\JobApplication;
+use App\Models\JobAlertSubscription;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
@@ -347,7 +349,70 @@ class AdminController extends Controller
         return redirect()->route('jobListings')
             ->with('success', 'Job listing deleted successfully!');
     }
-    
 
-    
+    /**
+     * Job-alert subscribers. Read-only: subscriptions are created and removed
+     * by the subscriber through the emailed links, never by staff.
+     */
+    public function jobAlerts(Request $request)
+    {
+        $query = JobAlertSubscription::with(['category', 'location'])->latest();
+
+        if ($request->input('status') === 'confirmed') {
+            $query->where('is_confirmed', true);
+        } elseif ($request->input('status') === 'pending') {
+            $query->where('is_confirmed', false);
+        }
+
+        if ($search = trim((string) $request->input('q'))) {
+            $query->where('email', 'like', '%' . $search . '%');
+        }
+
+        if ($request->input('export') === 'csv') {
+            return $this->exportJobAlerts($query->get());
+        }
+
+        return view('admin.job_alerts', [
+            'subscriptions' => $query->paginate(50)->withQueryString(),
+            'confirmedCount' => JobAlertSubscription::where('is_confirmed', true)->count(),
+            'pendingCount' => JobAlertSubscription::where('is_confirmed', false)->count(),
+            'status' => $request->input('status', ''),
+            'search' => $search,
+        ]);
+    }
+
+    /**
+     * Streamed so a large list never has to be held in memory at once.
+     */
+    private function exportJobAlerts($subscriptions): StreamedResponse
+    {
+        $filename = 'job-alert-subscribers-' . now()->format('Y-m-d') . '.csv';
+
+        return response()->streamDownload(function () use ($subscriptions) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'Email', 'Category', 'Location', 'Keywords',
+                'Confirmed', 'Confirmed at', 'Subscribed at',
+            ]);
+
+            foreach ($subscriptions as $subscription) {
+                fputcsv($handle, [
+                    $subscription->email,
+                    $subscription->category?->name ?? 'Any',
+                    $subscription->location
+                        ? ($subscription->location->is_remote ? 'Remote' : $subscription->location->city)
+                        : 'Any',
+                    $subscription->keywords ?? '',
+                    $subscription->is_confirmed ? 'Yes' : 'No',
+                    $subscription->confirmed_at?->format('Y-m-d H:i') ?? '',
+                    $subscription->created_at->format('Y-m-d H:i'),
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
 }

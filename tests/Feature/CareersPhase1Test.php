@@ -38,8 +38,17 @@ class CareersPhase1Test extends TestCase
             ->assertSee('name="salary_min"', false)
             ->assertSee('name="sort"', false);
 
-        // A GET form must not carry a CSRF token into the URL.
-        $response->assertDontSee('name="_token"', false);
+        // A GET form must not carry a CSRF token into the URL. Scoped to the
+        // filter form itself -- since Phase 4 the page also carries the job
+        // alert form, which is a POST and correctly does have a token.
+        $html = $response->getContent();
+        $filterForm = substr(
+            $html,
+            strpos($html, 'careers-filter-bar'),
+            strpos($html, '</form>', strpos($html, 'careers-filter-bar')) - strpos($html, 'careers-filter-bar')
+        );
+
+        $this->assertStringNotContainsString('name="_token"', $filterForm);
     }
 
     public function test_board_filters_narrow_the_result_set(): void

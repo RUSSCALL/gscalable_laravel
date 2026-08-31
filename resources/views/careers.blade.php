@@ -23,6 +23,30 @@
     </div>
 </section>
 
+<!-- ======= Flash messages ======= -->
+@if(session('alert_success') || session('alert_status') || session('error'))
+    <div class="container careers-flash-wrap">
+        @if(session('alert_success'))
+            <div class="careers-flash careers-flash--success" role="status">
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                <span>{{ session('alert_success') }}</span>
+            </div>
+        @endif
+        @if(session('alert_status'))
+            <div class="careers-flash" role="status">
+                <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                <span>{{ session('alert_status') }}</span>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="careers-flash careers-flash--error" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+    </div>
+@endif
+
 <!-- ======= Job Board ======= -->
 <section id="careers-board" class="careers-board" aria-labelledby="careers-board-heading">
     <div class="container" data-aos="fade-up">
@@ -184,5 +208,78 @@
         @endif
     </div>
 </section><!-- End Job Board -->
+
+<!-- ======= Job Alerts ======= -->
+<section id="job-alerts" class="careers-alert-band">
+    <div class="container" data-aos="fade-up">
+        <div class="careers-alert-card gst-card-base">
+            <div class="careers-alert-copy">
+                <h2>Nothing quite right yet?</h2>
+                <p>
+                    Tell us what you're looking for and we'll email you when a matching
+                    role opens. Confirm once, unsubscribe any time.
+                </p>
+            </div>
+
+            <form method="POST" action="{{ route('careers.alerts.subscribe') }}"
+                  class="careers-alert-form">
+                @csrf
+
+                {{-- Bot defences, mirroring the application form: an off-screen
+                     honeypot and an encrypted render timestamp. --}}
+                <div class="hp-field" aria-hidden="true">
+                    <label for="alert_website">Leave this field blank</label>
+                    <input type="text" id="alert_website" name="website" tabindex="-1" autocomplete="off">
+                </div>
+                <input type="hidden" name="_ts" value="{{ Crypt::encryptString(time()) }}">
+
+                <div class="careers-alert-fields">
+                    <div class="careers-alert-field">
+                        <label for="alert_email">Email address</label>
+                        <input type="email" id="alert_email" name="email" required
+                               value="{{ old('email') }}" placeholder="you@example.com"
+                               autocomplete="email">
+                        @error('email')
+                            <p class="careers-alert-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="careers-alert-field">
+                        <label for="alert_category">Category <span>(optional)</span></label>
+                        <select id="alert_category" name="category_id">
+                            <option value="">Any category</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="careers-alert-field">
+                        <label for="alert_keywords">Keywords <span>(optional)</span></label>
+                        <input type="text" id="alert_keywords" name="keywords"
+                               value="{{ old('keywords') }}" maxlength="120"
+                               placeholder="e.g. cloud security">
+                        @error('keywords')
+                            <p class="careers-alert-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="careers-alert-submit">
+                        <button type="submit" class="btn-gst-primary">
+                            <i class="bi bi-bell"></i> Notify me
+                        </button>
+                    </div>
+                </div>
+
+                <p class="careers-alert-fineprint">
+                    We only use this address for job alerts. See our
+                    <a href="{{ route('privacy') }}">privacy policy</a>.
+                </p>
+            </form>
+        </div>
+    </div>
+</section><!-- End Job Alerts -->
 
 @endsection

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\JobAlertController;
 use App\Http\Controllers\JobApplicantController;
 use App\Http\Controllers\ApplicantAccountController;
 use App\Http\Controllers\ApplicantDashboardController;
@@ -59,6 +60,9 @@ Route::middleware(['auth' , 'verified' , 'can:user-is-admin'])->group(function()
     Route::put('/jobs/{id}/publish', [AdminController::class, 'publish'])->name('jobs.publish');
     Route::put('/jobs/{id}/unpublish', [AdminController::class, 'unpublish'])->name('jobs.unpublish');
 
+    // Job alerts: read-only list plus ?export=csv.
+    Route::get('/admin/job-alerts', [AdminController::class, 'jobAlerts'])->name('admin.job-alerts');
+
 });
 
 
@@ -75,6 +79,20 @@ Route::get('/careers', [JobApplicantController::class, 'index'])->name('careers'
 Route::post('/careers/claim-account', [ApplicantAccountController::class, 'store'])
     ->middleware('throttle:6,1')
     ->name('careers.claim');
+
+// Job alerts. Declared before /careers/{slug} for the same reason as the
+// claim route -- the wildcard would otherwise match "job-alerts" as a slug.
+Route::post('/careers/job-alerts', [JobAlertController::class, 'subscribe'])
+    ->middleware('throttle:6,1')
+    ->name('careers.alerts.subscribe');
+Route::get('/careers/job-alerts/confirm/{token}', [JobAlertController::class, 'confirm'])
+    ->middleware('throttle:20,1')
+    ->where('token', '[a-f0-9]{64}')
+    ->name('careers.alerts.confirm');
+Route::get('/careers/job-alerts/unsubscribe/{token}', [JobAlertController::class, 'unsubscribe'])
+    ->middleware('throttle:20,1')
+    ->where('token', '[a-f0-9]{64}')
+    ->name('careers.alerts.unsubscribe');
 
 Route::get('/careers/{slug}', [JobApplicantController::class, 'show'])->name('careers.show');
 

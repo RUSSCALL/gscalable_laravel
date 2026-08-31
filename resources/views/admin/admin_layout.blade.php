@@ -75,6 +75,11 @@
                         <i class="bi bi-briefcase"></i> Job Listings
                     </a>
                 </li>
+                <li class="sidebar-item">
+                    <a href="{{ route('admin.job-alerts') }}" class="sidebar-link {{ Route::is('admin.job-alerts') ? 'active' : '' }}">
+                        <i class="bi bi-bell"></i> Job Alerts
+                    </a>
+                </li>
         
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link">

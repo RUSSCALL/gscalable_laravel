@@ -2,17 +2,12 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Encryption\DecryptException;
+use App\Http\Requests\Concerns\DetectsAutomatedSubmissions;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Crypt;
 
 class StoreJobApplicationRequest extends FormRequest
 {
-    /**
-     * Minimum seconds between the form rendering and being submitted. A human
-     * filling in this many fields takes far longer; a script does not.
-     */
-    private const MIN_FILL_SECONDS = 3;
+    use DetectsAutomatedSubmissions;
 
     public function authorize(): bool
     {
@@ -63,38 +58,5 @@ class StoreJobApplicationRequest extends FormRequest
     public function applicationData(): array
     {
         return $this->safe()->except(['terms_agree']);
-    }
-
-    /**
-     * True when this submission looks automated.
-     *
-     * Deliberately not expressed as a validation rule: a bot must not be told
-     * which check it failed, so the controller handles this with a single
-     * neutral response rather than a field-specific error.
-     */
-    public function looksAutomated(): bool
-    {
-        // The honeypot is visually hidden and hidden from assistive tech, so
-        // only a script fills it in.
-        if (filled($this->input('website'))) {
-            return true;
-        }
-
-        $stamp = $this->input('_ts');
-
-        // A missing or unreadable timestamp means the form was not rendered
-        // by us in this session.
-        if (! is_string($stamp) || $stamp === '') {
-            return true;
-        }
-
-        try {
-            $renderedAt = (int) Crypt::decryptString($stamp);
-        } catch (DecryptException $e) {
-            // Encrypted server-side, so this cannot be forged or back-dated.
-            return true;
-        }
-
-        return (time() - $renderedAt) < self::MIN_FILL_SECONDS;
     }
 }
