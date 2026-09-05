@@ -174,8 +174,8 @@
   <section id="cv-teaser" class="cv-teaser">
     <div class="container" data-aos="fade-up">
       <div class="cv-teaser-strip gst-card-base">
-        <p><strong>GST holds an active GSA HACS SIN 54151 contract vehicle</strong> &mdash; giving federal agencies fast, pre-vetted access to our cybersecurity and IT teams.</p>
-        <a href="{{ route('contract_vehicles') }}" class="btn-gst-primary">View Contract Vehicles</a>
+        <p><strong>Trusted by federal agencies nationwide</strong> &mdash; delivering cybersecurity, IT, and mission support to the organizations that depend on them.</p>
+        <a href="{{ route('contract_vehicles') }}" class="btn-gst-primary">View Our Partnerships</a>
       </div>
     </div>
   </section><!-- End Contract Vehicles Teaser -->
@@ -191,9 +191,9 @@
       <div class="ecosystem-strip" data-aos="fade-up" data-aos-delay="150">
         <div class="ecosystem-card gst-card-base">
           <p class="ecosystem-kicker">Brand &amp; Growth Marketing</p>
-          <h3>ScalePlusPro</h3>
+          <h3>ScalePlus</h3>
           <p>Marketing and brand strategy for growing organizations.</p>
-          <a href="https://scalepluspro.com" target="_blank" rel="noopener" class="ecosystem-link">Visit ScalePlusPro <i class="bi bi-box-arrow-up-right"></i></a>
+          <a href="https://scalepluspro.com" target="_blank" rel="noopener" class="ecosystem-link">Visit ScalePlus <i class="bi bi-box-arrow-up-right"></i></a>
         </div>
 
         <div class="ecosystem-card gst-card-base">
@@ -233,7 +233,7 @@
               <div class="info-box mt-4">
                 <i class="bx bx-envelope"></i>
                 <h3>Email Us</h3>
-                <p><a href="mailto:support@gscalabletech.com">support@gscalabletech.com</a></p>
+                <p><a href="mailto:reply@gscalabletech.com">reply@gscalabletech.com</a></p>
               </div>
             </div>
             <div class="col-md-6 col-lg-12">

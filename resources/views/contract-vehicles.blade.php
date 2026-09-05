@@ -7,9 +7,7 @@
     <div class="container" data-aos="fade-up">
         <h1 class="cv-hero-title">Contract Vehicles</h1>
         <p class="cv-hero-subtitle">
-            Global Scalable Technologies (GST) delivers cybersecurity, IT, and mission support services to federal
-            agencies and private industry through the contract vehicles below. These partnerships give agencies
-            fast, pre-vetted access to our teams and capabilities.
+            Cybersecurity, IT, and mission support services delivered to federal agencies and private industry.
         </p>
     </div>
 </section>
@@ -18,40 +16,23 @@
     <hr class="gsa-divider">
 </div>
 
-<!-- ======= GSA HACS Services Section ======= -->
-<section id="gsa_hacs" class="section-bg">
+<!-- ======= Trusted Government Partnerships ======= -->
+<section id="trusted_partnerships" class="section-bg">
     <div class="container" data-aos="fade-up">
         <div class="row align-items-center">
-            <div class="col-lg-8">
+            <div class="col-lg-7">
                 <div class="section-heading">
-                    <h2>GSA HIGHLY ADAPTIVE CYBERSECURITY SERVICES (HACS), SPECIAL ITEM NUMBER (SIN) 54151</h2>
+                    <h2>TRUSTED GOVERNMENT PARTNERSHIPS</h2>
                 </div>
-                <ul class="services-list">
-                    <li><i class="bi bi-check-circle"></i> High-Value Asset Assessments</li>
-                    <li><i class="bi bi-check-circle"></i> Risk and Vulnerability Assessment</li>
-                    <li><i class="bi bi-check-circle"></i> Cyber Hunt</li>
-                    <li><i class="bi bi-check-circle"></i> Incident Response</li>
-                    <li><i class="bi bi-check-circle"></i> Penetration Testing</li>
-                </ul>
-            </div>
-            <div class="col-lg-4">
-                <div class="gsa-logo">
-                    <img src="{{ asset('assets/img/partners/gsa.png') }}" alt="GSA Logo" class="img-fluid" loading="lazy">
+                <div class="partnerships-statement">
+                    <p>Global Scalable Technologies is proud to support government organizations in advancing secure, resilient, and mission-focused technology environments. Through our work with public-sector partners, we bring a commitment to cybersecurity, innovation, operational excellence, and dependable service delivery. The agencies represented below reflect organizations we have had the privilege of supporting as we help strengthen technology capabilities and enable critical missions.</p>
                 </div>
             </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-lg-12">
-                <div class="services-description">
-                    <p>This HACS SIN, available through the Information Technology Category (ITC) under GSA's Multiple Award Schedule (MAS), provides agencies quicker access to key, pre-vetted support services that will expand agencies' capacity to test their high-priority IT systems, rapidly address potential vulnerabilities, and stop adversaries before they impact our networks.</p>
+            <div class="col-lg-5">
+                <div class="partnerships-media">
+                    {{-- Public domain flag (Wikimedia Commons); decorative, so alt is empty. --}}
+                    <img src="{{ asset('assets/img/site/us-flag.png') }}" alt="" class="img-fluid" loading="lazy">
                 </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-lg-12 text-center">
-                <a href="#" class="btn btn-primary">VIEW MAS PRICE LIST</a>
             </div>
         </div>
     </div>
@@ -65,12 +46,8 @@
 <section id="partners" class="section-bg-alt">
     <div class="container" data-aos="fade-up">
         <div class="section-heading">
-            <h2>AGENCIES &amp; PARTNERS WE SUPPORT</h2>
+            <h2>AGENCIES &amp; PARTNERS</h2>
         </div>
-        <div class="partners-intro">
-            <p>GST proudly supports federal agencies and private-sector leaders under the contract vehicles above, delivering cybersecurity and IT services to the following organizations.</p>
-        </div>
-
         <div class="partners-grid">
             <div class="partner-col">
                 <div class="partner-card">
@@ -110,6 +87,38 @@
                         <img src="{{ asset('assets/img/partners/va.png') }}" alt="Department of Veterans Affairs" loading="lazy">
                     </div>
                     <p class="partner-name">Department of Veterans Affairs</p>
+                </div>
+            </div>
+            <div class="partner-col">
+                <div class="partner-card">
+                    <div class="partner-logo-wrap">
+                        <span class="partner-wordmark partner-wordmark--maryland"><span class="partner-wordmark-kicker">State of</span>Maryland</span>
+                    </div>
+                    <p class="partner-name">State of Maryland</p>
+                </div>
+            </div>
+            <div class="partner-col">
+                <div class="partner-card">
+                    <div class="partner-logo-wrap">
+                        <span class="partner-wordmark partner-wordmark--uscis">USCIS</span>
+                    </div>
+                    <p class="partner-name">U.S. Citizenship &amp; Immigration Services</p>
+                </div>
+            </div>
+            <div class="partner-col">
+                <div class="partner-card">
+                    <div class="partner-logo-wrap">
+                        <span class="partner-wordmark partner-wordmark--aws">AWS<span class="partner-wordmark-sub">Partner</span></span>
+                    </div>
+                    <p class="partner-name">AWS Partner</p>
+                </div>
+            </div>
+            <div class="partner-col">
+                <div class="partner-card">
+                    <div class="partner-logo-wrap">
+                        <span class="partner-wordmark partner-wordmark--google">Google</span>
+                    </div>
+                    <p class="partner-name">Cloud &amp; Workspace</p>
                 </div>
             </div>
             <div class="partner-col">

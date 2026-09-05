@@ -455,41 +455,43 @@ section {
 /*--------------------------------------------------------------
 # Contract Vehicles Page
 --------------------------------------------------------------*/
-/* GSA HACS Services Section */
-#gsa_hacs {
+/* Trusted Government Partnerships Section */
+#trusted_partnerships {
   padding: 60px 0;
 }
 
-.services-list {
-  list-style: none;
-  padding: 0;
+.partnerships-statement p {
+  font-size: 17px;
+  line-height: 1.75;
+  color: #555;
   margin: 0;
 }
 
-.services-list li {
-  padding: 10px 0;
-  font-size: 16px;
-  color: #333;
+.partnerships-media {
   display: flex;
   align-items: center;
-}
-
-.services-list li i {
-  margin-right: 10px;
-  color: #666;
-}
-
-.gsa-logo {
-  display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100%;
 }
 
-.services-description p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #555;
+.partnerships-media img {
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 991px) {
+  .partnerships-media {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  #trusted_partnerships {
+    padding: 40px 0;
+  }
+
+  .partnerships-statement p {
+    font-size: 16px;
+  }
 }
 
 .section-bg {
@@ -529,12 +531,6 @@ section {
    CONTRACT VEHICLES PAGE — Agency & Partner Logo Grid
    (page-specific; safe to edit/remove without affecting other pages)
    =========================================================== */
-.partners-intro p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #555;
-}
-
 .partners-grid {
   display: flex;
   flex-wrap: wrap;
@@ -597,6 +593,85 @@ section {
   filter: none;
   opacity: 1;
   transform: scale(1.08);
+}
+
+/* Text wordmark used where a partner logo is trademark-restricted.
+   Fills the same 110px logo slot and mirrors the logo hover treatment
+   so mixed image/text rows still read as one consistent grid. */
+.partners-grid .partner-wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--gst-font-heading);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  text-align: center;
+  /* Rests grey to match the grayscale logo treatment; brand colour is
+     revealed on hover via the --wordmark-brand custom property below. */
+  color: var(--gst-slate-400);
+  opacity: 0.85;
+  transition: all 0.3s ease-in-out;
+}
+
+.partners-grid .partner-card:hover .partner-wordmark {
+  color: var(--wordmark-brand, var(--gst-navy-900));
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+/* Brand colours, used only on hover so the resting grid stays uniform. */
+.partners-grid .partner-wordmark--uscis {
+  --wordmark-brand: #14477D;
+  letter-spacing: 0.5px;
+}
+
+.partners-grid .partner-wordmark--aws {
+  --wordmark-brand: #FF9900;
+  letter-spacing: 0.5px;
+}
+
+.partners-grid .partner-wordmark--google {
+  --wordmark-brand: #4285F4;
+}
+
+.partners-grid .partner-wordmark--maryland {
+  --wordmark-brand: #C8102E;
+  font-size: 27px;
+}
+
+/* Small label sitting above a wordmark (e.g. "State of" / Maryland). */
+.partners-grid .partner-wordmark-kicker {
+  display: block;
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gst-slate-400);
+  margin-bottom: 2px;
+  transition: color 0.3s ease-in-out;
+}
+
+.partners-grid .partner-card:hover .partner-wordmark-kicker {
+  color: var(--gst-navy-900);
+}
+
+.partners-grid .partner-wordmark-sub {
+  font-family: var(--gst-font-label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gst-slate-400);
+  margin-top: 4px;
+  transition: color 0.3s ease-in-out;
+}
+
+.partners-grid .partner-card:hover .partner-wordmark-sub {
+  color: var(--gst-navy-900);
 }
 
 .partners-grid .partner-name {
@@ -3710,5 +3785,75 @@ section {
 
   .careers-alert-fields {
     grid-template-columns: 1fr;
+  }
+}
+
+/*--------------------------------------------------------------
+# Error Pages (404)
+--------------------------------------------------------------*/
+.error-page {
+  /* Top padding clears the fixed header. */
+  padding: 180px 0 100px;
+}
+
+.error-card {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 56px 40px;
+  text-align: center;
+}
+
+.error-code {
+  font-family: var(--gst-font-heading);
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gst-orange-500);
+  margin: 0 0 12px;
+}
+
+.error-card h1 {
+  font-family: var(--gst-font-heading);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0 0 16px;
+}
+
+.error-message {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--gst-slate-500);
+  margin: 0 0 32px;
+}
+
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+
+@media (max-width: 575px) {
+  .error-page {
+    padding: 150px 0 70px;
+  }
+
+  .error-card {
+    padding: 40px 24px;
+  }
+
+  .error-code {
+    font-size: 56px;
+  }
+
+  .error-card h1 {
+    font-size: 24px;
+  }
+
+  .error-actions .btn-gst-primary,
+  .error-actions .btn-gst-ghost {
+    width: 100%;
+    justify-content: center;
   }
 }
