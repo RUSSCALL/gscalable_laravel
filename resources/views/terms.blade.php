@@ -51,7 +51,7 @@
             <p>
                 Some features require an account. You are responsible for maintaining the confidentiality of your login
                 credentials and for all activity under your account. You agree to notify us promptly at
-                <a href="mailto:support@gscalabletech.com">support@gscalabletech.com</a> of any unauthorized use. We may
+                <a href="mailto:reply@gscalabletech.com">reply@gscalabletech.com</a> of any unauthorized use. We may
                 suspend or terminate accounts that violate these Terms or that we reasonably believe present a security or
                 legal risk.
             </p>
@@ -79,7 +79,7 @@
             </ul>
             <p>
                 We appreciate responsible disclosure of security issues. If you believe you have found a vulnerability in
-                the Site, contact <a href="mailto:support@gscalabletech.com">support@gscalabletech.com</a> before taking
+                the Site, contact <a href="mailto:reply@gscalabletech.com">reply@gscalabletech.com</a> before taking
                 any further action.
             </p>
 
@@ -156,7 +156,7 @@
                 <p>Questions about these Terms can be directed to:</p>
                 <p>
                     Global Scalable Technologies<br>
-                    Email: <a href="mailto:support@gscalabletech.com">support@gscalabletech.com</a><br>
+                    Email: <a href="mailto:reply@gscalabletech.com">reply@gscalabletech.com</a><br>
                     Phone: <a href="tel:+12403198823">+1 240-319-8823</a>
                 </p>
             </div>

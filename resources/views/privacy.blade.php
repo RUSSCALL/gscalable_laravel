@@ -138,7 +138,7 @@
                 <p>If you have questions about this Privacy Policy or how we handle your information, contact:</p>
                 <p>
                     Global Scalable Technologies<br>
-                    Email: <a href="mailto:support@gscalabletech.com">support@gscalabletech.com</a><br>
+                    Email: <a href="mailto:reply@gscalabletech.com">reply@gscalabletech.com</a><br>
                     Phone: <a href="tel:+12403198823">+1 240-319-8823</a>
                 </p>
             </div>

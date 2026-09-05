@@ -16,7 +16,7 @@
               <p>Cybersecurity and technology services engineered for mission-critical environments.</p>
               <p>
                 <strong>Phone: </strong>+1 240-319-8823<br>
-                <strong>Email: </strong> support@gscalabletech.com<br>
+                <strong>Email: </strong> reply@gscalabletech.com<br>
               </p>
               <div class="social-links mt-3">
                 <a href="https://www.linkedin.com/company/global-scalable-technologies" class="linkedin" target="_blank" rel="noopener" aria-label="GST on LinkedIn"><i class="bx bxl-linkedin"></i></a>
