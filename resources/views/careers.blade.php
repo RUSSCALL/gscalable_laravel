@@ -159,17 +159,20 @@
             </div>
         @endif
 
-        <!-- Results -->
-        <div class="careers-results-head">
-            <p class="careers-results-count">
-                @if($jobPostings->total() > 0)
-                    Showing {{ $jobPostings->firstItem() }}&ndash;{{ $jobPostings->lastItem() }}
-                    of {{ $jobPostings->total() }} {{ Str::plural('role', $jobPostings->total()) }}
-                @else
-                    No roles found
-                @endif
-            </p>
-        </div>
+        {{-- Results count. Hidden when nothing is posted at all, since the
+             empty-state card below already says so. --}}
+        @if($jobPostings->total() > 0 || $hasFilters)
+            <div class="careers-results-head">
+                <p class="careers-results-count">
+                    @if($jobPostings->total() > 0)
+                        Showing {{ $jobPostings->firstItem() }}&ndash;{{ $jobPostings->lastItem() }}
+                        of {{ $jobPostings->total() }} {{ Str::plural('role', $jobPostings->total()) }}
+                    @else
+                        No roles found
+                    @endif
+                </p>
+            </div>
+        @endif
 
         @if(count($filters))
             <ul class="careers-active-filters">
@@ -198,13 +201,28 @@
                 </div>
             @endif
         @else
-            <div class="careers-empty gst-card-base">
-                <h3>No roles match those filters</h3>
-                <p>Try widening your search &mdash; or browse everything we have open right now.</p>
-                <a href="{{ route('careers') }}" class="btn-gst-primary">
-                    <i class="bi bi-arrow-counterclockwise"></i> View all roles
-                </a>
-            </div>
+            @if($hasFilters)
+                <div class="careers-empty gst-card-base">
+                    <h3>No roles match those filters</h3>
+                    <p>Try widening your search &mdash; or browse everything we have open right now.</p>
+                    <a href="{{ route('careers') }}" class="btn-gst-primary">
+                        <i class="bi bi-arrow-counterclockwise"></i> View all roles
+                    </a>
+                </div>
+            @else
+                {{-- Nothing is posted at all. Offering "view all roles" here would
+                     loop back to this same page, so point at job alerts instead. --}}
+                <div class="careers-empty gst-card-base">
+                    <h3>No openings right now</h3>
+                    <p>
+                        We're not advertising any roles at the moment, but that changes often.
+                        Set up a job alert and we'll email you as soon as something opens.
+                    </p>
+                    <a href="#job-alerts" class="btn-gst-primary">
+                        <i class="bi bi-bell"></i> Get job alerts
+                    </a>
+                </div>
+            @endif
         @endif
     </div>
 </section><!-- End Job Board -->

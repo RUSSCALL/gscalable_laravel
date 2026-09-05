@@ -227,10 +227,11 @@ function shareJob(title, url) {
    */
   window.addEventListener('load', () => {
     AOS.init({
-      duration: 1000,
-      easing: "ease-in-out",
+      duration: 500,
+      easing: "ease-out",
       once: true,
-      mirror: false
+      mirror: false,
+      offset: 60
     });
   });
 
@@ -248,7 +249,7 @@ function shareJob(title, url) {
       let message = form.message.value.trim();
 
       let body = 'Name: ' + name + '\nEmail: ' + email + '\n\n' + message;
-      let mailto = 'mailto:support@gscalabletech.com'
+      let mailto = 'mailto:reply@gscalabletech.com'
         + '?subject=' + encodeURIComponent(subject)
         + '&body=' + encodeURIComponent(body);
 
