@@ -24,7 +24,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to Elastic Beanstalk
-        uses: aws-actions/aws-elasticbeanstalk-deploy@v1.0.0
+        uses: aws-actions/aws-elasticbeanstalk-deploy@v1.0.8
         with:
           aws-region: us-east-1
           application-name: GST_website
