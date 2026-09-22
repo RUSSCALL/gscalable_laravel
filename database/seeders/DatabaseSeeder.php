@@ -13,7 +13,6 @@ use App\Models\JobApplication;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -35,27 +34,6 @@ class DatabaseSeeder extends Seeder
     }
 }
 
-class RoleSeeder extends Seeder
-{
-    public function run()
-    {
-        Role::create([
-            'role_name' => 'SuperAdmin',
-            'updated_at' => now(),
-            'created_at' => now()
-        ]);
-        Role::create([
-            'role_name' => 'Admin',
-            'updated_at' => now(),
-            'created_at' => now()
-        ]);
-        Role::create([
-            'role_name' => 'job_applicant',
-            'updated_at' => now(),
-            'created_at' => now()
-        ]);
-    }
-}
 class UserSeeder extends Seeder
 {
     public function run()
