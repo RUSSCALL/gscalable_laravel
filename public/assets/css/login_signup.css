@@ -135,8 +135,27 @@
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            line-height: 1;
             color: #999;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .gst_login_eye_icon:focus-visible {
+            outline: 2px solid var(--gst-orange);
+            outline-offset: 2px;
+            border-radius: 2px;
+        }
+
+        .gst_login_password_input_wrapper .gst_login_input {
+            padding-right: 2.4rem;
         }
 
         .gst_login_button {
