@@ -158,6 +158,38 @@
             padding-right: 2.4rem;
         }
 
+        .gst_terms_group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .gst_terms_group input[type="checkbox"] {
+            width: auto;
+            margin-top: 3px;
+            flex-shrink: 0;
+            accent-color: var(--gst-orange);
+        }
+
+        .gst_terms_label {
+            font-family: "Open Sans", sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            font-weight: 400;
+            color: var(--gst-text-white);
+            margin: 0;
+        }
+
+        .gst_terms_label a {
+            color: var(--gst-orange);
+            text-decoration: none;
+        }
+
+        .gst_terms_label a:hover {
+            color: var(--gst-orange-600);
+            text-decoration: underline;
+        }
+
         .gst_login_button {
             width: 100%;
             padding: 1rem;

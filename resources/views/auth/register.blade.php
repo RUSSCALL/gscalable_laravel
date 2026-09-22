@@ -78,9 +78,9 @@
                     </div>
                 </div>
                 
-                <div class="gst_login_form_group">
+                <div class="gst_login_form_group gst_terms_group">
                     <input type="checkbox" id="terms" required>
-                    <label for="terms" class="gst_terms_label">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                    <label for="terms" class="gst_terms_label">I agree to the <a href="{{ route('terms') }}">Terms of Service</a> and <a href="{{ route('privacy') }}">Privacy Policy</a></label>
                 </div>
                 
                 <button type="submit" class="gst_login_button">Create Account</button>
