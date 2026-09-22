@@ -8,6 +8,7 @@ use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -66,5 +67,12 @@ class FortifyServiceProvider extends ServiceProvider
             return view ('auth.verify-email');
         });
 
+        // Guard the "resend verification email" endpoint: if mail isn't
+        // configured, fail gracefully instead of 500ing when
+        // $user->sendEmailVerificationNotification() throws.
+        $this->app->booted(function () {
+            optional(Route::getRoutes()->getByName('verification.send'))
+                ->middleware('mail.configured');
+        });
     }
 }

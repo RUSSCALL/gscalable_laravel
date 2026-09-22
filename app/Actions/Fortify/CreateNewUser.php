@@ -3,14 +3,16 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Support\EnsuresMailIsConfigured;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
 {
-    use PasswordValidationRules;
+    use PasswordValidationRules, EnsuresMailIsConfigured;
 
     /**
      * Validate and create a newly registered user.
@@ -19,6 +21,14 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        if (! $this->mailIsConfigured()) {
+            report(new \RuntimeException("Registration blocked: mail is not configured (mailer: {$this->currentMailer()})."));
+
+            throw ValidationException::withMessages([
+                'email' => __('Registration is temporarily unavailable. Please try again later or contact support.'),
+            ]);
+        }
+
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255' , 'min:2'],
             'email' => [
