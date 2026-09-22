@@ -10,9 +10,13 @@ class TrustProxies extends Middleware
     /**
      * The trusted proxies for this application.
      *
+     * '*' trusts the Elastic Beanstalk ALB, whose IP is dynamic. Without it
+     * Laravel ignores X-Forwarded-Proto and verifies signed URLs as http://,
+     * 403ing the https:// links sent in verification emails.
+     *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = '*';
 
     /**
      * The headers that should be used to detect proxies.
