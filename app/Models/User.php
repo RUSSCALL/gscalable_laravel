@@ -15,6 +15,8 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * The attributes that are mass assignable.
      *
+     * role_id is deliberately excluded so mass assignment cannot escalate a user's role.
+     *
      * @var array<int, string>
      */
     protected $fillable = [

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Support\EnsuresMailIsConfigured;
 use Illuminate\Support\Facades\Hash;
@@ -41,10 +42,16 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
         ]);
+
+        // Set explicitly: Eloquent does not read the column's DB default back, leaving a null role on the logged-in instance.
+        $user->role_id = Role::where('role_name', 'job_applicant')->orderBy('id')->value('id');
+        $user->save();
+
+        return $user;
     }
 }
