@@ -15,7 +15,7 @@
               <h3>Global Scalable Technologies</h3>
               <p>Cybersecurity and technology services engineered for mission-critical environments.</p>
               <p>
-                <strong>Phone: </strong>+1 240-319-8823<br>
+                <strong>Phone: </strong>+1 202-819-5975<br>
                 <strong>Email: </strong> reply@gscalabletech.com<br>
               </p>
               <div class="social-links mt-3">
