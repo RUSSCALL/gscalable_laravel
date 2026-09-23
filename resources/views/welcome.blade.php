@@ -240,7 +240,7 @@
               <div class="info-box mt-4">
                 <i class="bx bx-phone-call"></i>
                 <h3>Call Us</h3>
-                <p><a href="tel:+12403198823">+1 240-319-8823</a></p>
+                <p><a href="tel:+12403198823">+1 202-819-5975</a></p>
               </div>
             </div>
           </div>
