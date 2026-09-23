@@ -70,9 +70,16 @@ class FortifyServiceProvider extends ServiceProvider
         // Guard the "resend verification email" endpoint: if mail isn't
         // configured, fail gracefully instead of 500ing when
         // $user->sendEmailVerificationNotification() throws.
+        //
+        // Fortify's route file has no `register` entry in its `limiters`
+        // config (unlike `login`/`two-factor`), so throttling it has to be
+        // bolted on here, the same way, after Fortify registers the route.
         $this->app->booted(function () {
             optional(Route::getRoutes()->getByName('verification.send'))
                 ->middleware('mail.configured');
+
+            optional(Route::getRoutes()->getByName('register.store'))
+                ->middleware('throttle:6,1');
         });
     }
 }
