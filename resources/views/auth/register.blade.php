@@ -83,6 +83,8 @@
                     <label for="terms" class="gst_terms_label">I agree to the <a href="{{ route('terms') }}">Terms of Service</a> and <a href="{{ route('privacy') }}">Privacy Policy</a></label>
                 </div>
                 
+                @include('auth.partials.turnstile')
+
                 <button type="submit" class="gst_login_button">Create Account</button>
             </form>
             

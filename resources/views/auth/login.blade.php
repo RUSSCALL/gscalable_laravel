@@ -56,6 +56,8 @@
                     </div>
                 </div>
                 
+                @include('auth.partials.turnstile')
+
                 <button type="submit" class="gst_login_button">Sign In</button>
             </form>
             

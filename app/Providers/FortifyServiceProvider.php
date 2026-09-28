@@ -79,7 +79,10 @@ class FortifyServiceProvider extends ServiceProvider
                 ->middleware('mail.configured');
 
             optional(Route::getRoutes()->getByName('register.store'))
-                ->middleware('throttle:6,1');
+                ->middleware(['throttle:6,1', 'turnstile']);
+
+            optional(Route::getRoutes()->getByName('login.store'))
+                ->middleware('turnstile');
         });
     }
 }
