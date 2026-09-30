@@ -7,9 +7,9 @@
         <div class="container-fluid p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="page-title">Job Listings</h1>
-                <button type="button" class="btn btn-gst" data-bs-toggle="modal" data-bs-target="#createJobModal">
+                <a href="{{ route('jobs.create') }}" class="btn btn-gst">
                     <i class="bi bi-plus-circle me-2"></i> Create Job Listing
-                </button>
+                </a>
             </div>
             
             <!-- Filters and Search -->
@@ -123,11 +123,11 @@
                                     </td>
                                     <td>
                                         @php
-                                            $deadline = \Carbon\Carbon::parse($job->application_deadline);
-                                            $daysLeft = $deadline->diffInDays(now());
+                                            $deadline = $job->application_deadline;
+                                            $daysLeft = (int) today()->diffInDays($deadline, false);
                                         @endphp
-                                        
-                                        @if($deadline->isPast())
+
+                                        @if($daysLeft < 0)
                                             <span class="badge bg-danger">Expired</span>
                                         @elseif($daysLeft <= 5)
                                             <span class="badge bg-warning">{{ $daysLeft }} days left</span>
@@ -152,12 +152,8 @@
                                                 <li><a class="dropdown-item" href="{{ route('jobs.edit', $job->id) }}">
                                                     <i class="bi bi-pencil me-2"></i> Edit
                                                 </a></li>
-                                                <li>
-                                                    {{-- <a class="dropdown-item" href="{{ route('jobs.applications', $job->id) }}"> --}}
-                                                    <i class="bi bi-people me-2"></i> View Applications
-                                                </a></li>
                                                 <li><a class="dropdown-item" href="{{ route('jobs.show', $job->id) }}">
-                                                    <i class="bi bi-eye me-2"></i> Preview
+                                                    <i class="bi bi-info-circle me-2"></i> Details
                                                 </a></li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 @if($job->is_published)
@@ -200,9 +196,9 @@
                                         <div class="d-flex flex-column align-items-center">
                                             <i class="bi bi-folder-x" style="font-size: 2rem;"></i>
                                             <p class="mt-2">No job listings found</p>
-                                            <button type="button" class="btn btn-sm btn-gst" data-bs-toggle="modal" data-bs-target="#createJobModal">
+                                            <a href="{{ route('jobs.create') }}" class="btn btn-sm btn-gst">
                                                 Create your first job listing
-                                            </button>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -225,154 +221,4 @@
             </div>
         </div>
     </div>
-
-    <!-- Create Job Modal -->
-    <div class="modal fade" id="createJobModal" tabindex="-1" aria-labelledby="createJobModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createJobModalLabel">Create New Job Listing</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="createJobForm" action="{{ route('jobs.store') }}" method="POST">
-                        @csrf
-                        
-                        <div class="mb-3">
-                            <label for="title" class="form-label">Job Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="title" name="title" required>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="category_id" class="form-label">Category</label>
-                                <select class="form-select" id="category_id" name="category_id">
-                                    <option value="">Select Category</option>
-                                    @foreach($categories as $category)
-                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="location_id" class="form-label">Location</label>
-                                <select class="form-select" id="location_id" name="location_id">
-                                    <option value="">Select Location</option>
-                                    @foreach($locations as $location)
-                                        <option value="{{ $location->id }}">
-                                            {{ $location->city }}, {{ $location->country }}
-                                            @if($location->is_remote) (Remote) @endif
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="form-check mt-2">
-                                    <input class="form-check-input" type="checkbox" id="is_remote" name="is_remote">
-                                    <label class="form-check-label" for="is_remote">
-                                        This is a remote position
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="employment_type" class="form-label">Employment Type <span class="text-danger">*</span></label>
-                                <select class="form-select" id="employment_type" name="employment_type" required>
-                                    <option value="">Select Type</option>
-                                    <option value="Full-time">Full-time</option>
-                                    <option value="Part-time">Part-time</option>
-                                    <option value="Contract">Contract</option>
-                                    <option value="Temporary">Temporary</option>
-                                    <option value="Internship">Internship</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="experience_level" class="form-label">Experience Level <span class="text-danger">*</span></label>
-                                <select class="form-select" id="experience_level" name="experience_level" required>
-                                    <option value="">Select Level</option>
-                                    <option value="Entry">Entry Level</option>
-                                    <option value="Mid">Mid Level</option>
-                                    <option value="Senior">Senior Level</option>
-                                    <option value="Executive">Executive Level</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="salary_min" class="form-label">Minimum Salary</label>
-                                <input type="number" class="form-control" id="salary_min" name="salary_min" min="0" step="0.01">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="salary_max" class="form-label">Maximum Salary</label>
-                                <input type="number" class="form-control" id="salary_max" name="salary_max" min="0" step="0.01">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="salary_period" class="form-label">Salary Period</label>
-                                <select class="form-select" id="salary_period" name="salary_period">
-                                    <option value="">Select Period</option>
-                                    <option value="Hourly">Hourly</option>
-                                    <option value="Monthly">Monthly</option>
-                                    <option value="Annual">Annual</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="application_deadline" class="form-label">Application Deadline <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="application_deadline" name="application_deadline" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Job Description <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="requirements" class="form-label">Requirements <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="requirements" name="requirements" rows="4" required></textarea>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="responsibilities" class="form-label">Responsibilities <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="responsibilities" name="responsibilities" rows="4" required></textarea>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="benefits" class="form-label">Benefits</label>
-                            <textarea class="form-control" id="benefits" name="benefits" rows="4"></textarea>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured">
-                                    <label class="form-check-label" for="is_featured">Feature this job</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="is_published" name="is_published">
-                                    <label class="form-check-label" for="is_published">Publish immediately</label>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-gst" onclick="document.getElementById('createJobForm').submit()">Create Job Listing</button>
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
-
-@section('scripts')
-<script>
-    // Initialize any form plugins (Rich text editors, datepickers, etc.)
-    document.addEventListener('DOMContentLoaded', function() {
-        // You can add custom JavaScript for the page here
-        // For example, initialize WYSIWYG editors for description fields
-    });
-</script>
 @endsection

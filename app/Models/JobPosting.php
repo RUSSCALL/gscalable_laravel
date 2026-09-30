@@ -9,6 +9,12 @@ class JobPosting extends Model
 {
     use HasFactory;
 
+    public const EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Contract', 'Temporary', 'Internship'];
+
+    public const EXPERIENCE_LEVELS = ['Entry', 'Junior', 'Mid-level', 'Senior', 'Lead', 'Executive'];
+
+    public const SALARY_PERIODS = ['Hourly', 'Monthly', 'Annual'];
+
     protected $fillable = [
         'title',
         'slug',
@@ -109,7 +115,7 @@ class JobPosting extends Model
     public function scopeActive($query)
     {
         return $query->where('is_published', true)
-            ->where('application_deadline', '>=', now());
+            ->whereDate('application_deadline', '>=', today());
     }
     
     /**
@@ -132,9 +138,14 @@ class JobPosting extends Model
             $amount = 'Up to ' . $currency . ' ' . number_format($this->salary_max, 0);
         }
 
+        if (! $this->salary_period) {
+            return $amount;
+        }
+
         // Currency and period are stated once for the whole range, not per bound.
-        return $this->salary_period
-            ? $amount . ' per ' . strtolower($this->salary_period)
-            : $amount;
+        $unit = ['hourly' => 'hour', 'monthly' => 'month', 'annual' => 'year'][strtolower($this->salary_period)]
+            ?? strtolower($this->salary_period);
+
+        return $amount . ' per ' . $unit;
     }
 }

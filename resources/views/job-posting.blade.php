@@ -4,7 +4,7 @@
     $deadline = \Carbon\Carbon::parse($job->application_deadline)->endOfDay();
     $daysLeft = (int) now()->startOfDay()->diffInDays($deadline, false);
     $isOpen = $daysLeft >= 0;
-    $metaDescription = Str::limit(strip_tags($job->description), 155);
+    $metaDescription = Str::limit(\App\Support\RichText::plain($job->description), 155);
     $canonical = route('careers.show', $job->slug);
 
     $locationLabel = $job->location
@@ -31,7 +31,12 @@
 <meta property="og:title" content="{{ $job->title }} — Global Scalable Technologies">
 <meta property="og:description" content="{{ $metaDescription }}">
 <meta property="og:url" content="{{ $canonical }}">
+@if($jsonLd)
 <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endif
+@isset($preview)
+@include('admin.jobs._preview_head')
+@endisset
 @endpush
 
 @section('main_content')
@@ -86,29 +91,28 @@
 
                     <div class="job-section">
                         <h2>About the role</h2>
-                        {{-- Stored copy is plain text with newlines, so escape it
-                             and convert the breaks rather than echoing raw HTML. --}}
-                        <p>{!! nl2br(e($job->description)) !!}</p>
+                        {{-- Legacy plain text or sanitized editor HTML; RichText renders both safely. --}}
+                        <div class="job-rich-text">{!! \App\Support\RichText::render($job->description) !!}</div>
                     </div>
 
                     @if($job->responsibilities)
                         <div class="job-section">
                             <h2>Responsibilities</h2>
-                            <p>{!! nl2br(e($job->responsibilities)) !!}</p>
+                            <div class="job-rich-text">{!! \App\Support\RichText::render($job->responsibilities) !!}</div>
                         </div>
                     @endif
 
                     @if($job->requirements)
                         <div class="job-section">
                             <h2>Requirements</h2>
-                            <p>{!! nl2br(e($job->requirements)) !!}</p>
+                            <div class="job-rich-text">{!! \App\Support\RichText::render($job->requirements) !!}</div>
                         </div>
                     @endif
 
                     @if($job->benefits)
                         <div class="job-section">
                             <h2>Benefits</h2>
-                            <p>{!! nl2br(e($job->benefits)) !!}</p>
+                            <div class="job-rich-text">{!! \App\Support\RichText::render($job->benefits) !!}</div>
                         </div>
                     @endif
 
@@ -189,10 +193,12 @@
                                 <span class="job-fact-label">Closes</span>
                                 <span class="job-fact-value">{{ $deadline->format('M j, Y') }}</span>
                             </li>
-                            <li>
-                                <span class="job-fact-label">Job ID</span>
-                                <span class="job-fact-value">{{ date('Y') }}-{{ $job->id }}</span>
-                            </li>
+                            @if($job->id)
+                                <li>
+                                    <span class="job-fact-label">Job ID</span>
+                                    <span class="job-fact-value">{{ date('Y') }}-{{ $job->id }}</span>
+                                </li>
+                            @endif
                         </ul>
                     </div>
 
@@ -219,5 +225,9 @@
         </div>
     </div>
 </section><!-- End Job Detail -->
+
+@isset($preview)
+    @include('admin.jobs._preview_bar')
+@endisset
 
 @endsection

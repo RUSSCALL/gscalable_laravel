@@ -12,6 +12,7 @@ use App\Models\JobApplication;
 use App\Models\JobAlertSubscription;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\JobPostingRequest;
 
 class AdminController extends Controller
 {
@@ -19,7 +20,7 @@ class AdminController extends Controller
            // Gather dashboard statistics using Eloquent models
         $dashboardStats = [
                     'active_jobs' => JobPosting::where('is_published', true)
-                        ->where('application_deadline', '>=', now())
+                        ->whereDate('application_deadline', '>=', today())
                         ->count(),
                     
                     'new_applications' => JobApplication::where('status', 'submitted')
@@ -55,7 +56,7 @@ class AdminController extends Controller
                     ->map(function ($job) {
                         // Determine the status label
                         $status = 'Closed';
-                        if ($job->is_published && $job->application_deadline >= now()) {
+                        if ($job->is_published && ! $job->application_deadline->isBefore(today())) {
                             $status = 'Active';
                         } elseif ($job->is_published) {
                             $status = 'Pending';
@@ -112,8 +113,10 @@ class AdminController extends Controller
         }
         
         // Apply sorting
-        $sortField = $request->get('sort', 'created_at');
-        $sortDirection = $request->get('direction', 'desc');
+        $sortField = in_array($request->get('sort'), ['created_at', 'title', 'application_deadline', 'published_at'], true)
+            ? $request->get('sort')
+            : 'created_at';
+        $sortDirection = $request->get('direction') === 'asc' ? 'asc' : 'desc';
         
         $query->orderBy($sortField, $sortDirection);
         
@@ -132,222 +135,220 @@ class AdminController extends Controller
     }
     
 
-    public function store(Request $request)
+    public function create()
     {
-        $request->merge([
-            'is_featured' => $request->input('is_featured') === 'on' ? true : false,
-            'is_published' => $request->input('is_published') === 'on' ? true : false,
-        ]);
-
-        // Validate the request
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'category_id' => 'nullable|exists:job_categories,id',
-            'location_id' => 'nullable|exists:job_locations,id',
-            'description' => 'required|string',
-            'requirements' => 'required|string',
-            'responsibilities' => 'required|string',
-            'benefits' => 'nullable|string',
-            'employment_type' => 'required|string|max:50',
-            'experience_level' => 'required|string|max:50',
-            'salary_min' => 'nullable|numeric|min:0',
-            'salary_max' => 'nullable|numeric|min:0|gte:salary_min',
-            'salary_period' => 'nullable|string|max:20',
-            'application_deadline' => 'required|date|after:today',
-            'is_featured' => 'boolean',
-            'is_published' => 'boolean',
-        ]);
-        
-
-        // Create a slug from the title
-        $slug = Str::slug($request->title);
-        $baseSlug = $slug;
-        $counter = 1;
-        
-        // Ensure slug is unique
-        while (JobPosting::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $counter;
-            $counter++;
-        }
-        
-        // Create new job posting
-        $jobPosting = new JobPosting();
-        $jobPosting->title = $request->title;
-        $jobPosting->slug = $slug;
-        $jobPosting->category_id = $request->category_id;
-        $jobPosting->location_id = $request->location_id;
-        $jobPosting->created_by = Auth::id();
-        $jobPosting->description = $request->description;
-        $jobPosting->requirements = $request->requirements;
-        $jobPosting->responsibilities = $request->responsibilities;
-        $jobPosting->benefits = $request->benefits;
-        $jobPosting->employment_type = $request->employment_type;
-        $jobPosting->experience_level = $request->experience_level;
-        $jobPosting->salary_min = $request->salary_min;
-        $jobPosting->salary_max = $request->salary_max;
-        $jobPosting->salary_period = $request->salary_period;
-        $jobPosting->application_deadline = $request->application_deadline;
-        $jobPosting->is_featured = $request->has('is_featured');
-        $jobPosting->is_published = $request->has('is_published');
-        
-        // Set published_at timestamp if being published
-        if ($jobPosting->is_published) {
-            $jobPosting->published_at = Carbon::now();
-        }
-
-        $jobPosting->save();
-        
-        // Handle remote location if needed
-        if ($request->has('is_remote') && !$request->location_id) {
-            // Check if a generic remote location exists or create one
-            $remoteLocation = JobLocation::firstOrCreate(
-                ['is_remote' => true, 'city' => 'Remote', 'country' => 'Worldwide'],
-                ['address' => 'Remote', 'postal_code' => '00000']
-            );
-            
-            $jobPosting->location_id = $remoteLocation->id;
-            $jobPosting->save();
-        }
-        
-        return redirect()->route('jobListings')
-            ->with('success', 'Job listing created successfully!');
+        return view('admin.jobs.create', $this->formOptions() + ['job' => new JobPosting()]);
     }
-    
+
+    /**
+     * Render the unsaved job with the public job page so the admin sees exactly
+     * what applicants will. Nothing is written until they confirm from here.
+     */
+    public function preview(JobPostingRequest $request, $id = null)
+    {
+        $job = $id ? JobPosting::findOrFail($id) : (new JobPosting())->forceFill(['views_count' => 0, 'applications_count' => 0]);
+        $this->fillFromRequest($job, $request, persist: false);
+
+        $fields = collect($request->validated())
+            ->map(fn ($value) => is_bool($value) ? (int) $value : $value)
+            ->all();
+
+        return view('job-posting', [
+            'job' => $job,
+            'relatedJobs' => collect(),
+            'hasApplied' => false,
+            'jsonLd' => null,
+            'preview' => [
+                'action' => $id ? route('jobs.update', $id) : route('jobs.store'),
+                'method' => $id ? 'PUT' : 'POST',
+                'fields' => $fields,
+            ],
+        ]);
+    }
+
+    public function store(JobPostingRequest $request)
+    {
+        if ($request->input('intent') === 'edit') {
+            return redirect()->route('jobs.create')->withInput();
+        }
+
+        $job = new JobPosting();
+        $job->created_by = Auth::id();
+        $this->fillFromRequest($job, $request, persist: true);
+        $job->save();
+
+        return redirect()->route('jobListings')->with('success', $job->is_published
+            ? 'Job listing created and published.'
+            : 'Job listing saved as a draft.');
+    }
 
     public function show($id)
     {
-        $job = JobPosting::with(['category', 'location'])
+        $job = JobPosting::with(['category', 'location', 'creator'])
+            ->withCount('applications')
             ->findOrFail($id);
-            
+
         return view('admin.jobs.show', compact('job'));
     }
-    
 
     public function edit($id)
     {
-        $job = JobPosting::findOrFail($id);
-        $categories = JobCategory::where('is_active', true)->orderBy('name')->get();
-        $locations = JobLocation::orderBy('country')->orderBy('city')->get();
-        
-        return view('admin.jobs.edit', compact('job', 'categories', 'locations'));
+        return view('admin.jobs.edit', $this->formOptions() + ['job' => JobPosting::findOrFail($id)]);
     }
-    
 
-    public function update(Request $request, $id)
+    public function update(JobPostingRequest $request, $id)
     {
-        // Find the job
-        $jobPosting = JobPosting::findOrFail($id);
-        
-        // Validate the request (similar to store with some differences)
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'category_id' => 'nullable|exists:job_categories,id',
-            'location_id' => 'nullable|exists:job_locations,id',
-            'description' => 'required|string',
-            'requirements' => 'required|string',
-            'responsibilities' => 'required|string',
-            'benefits' => 'nullable|string',
-            'employment_type' => 'required|string|max:50',
-            'experience_level' => 'required|string|max:50',
-            'salary_min' => 'nullable|numeric|min:0',
-            'salary_max' => 'nullable|numeric|min:0|gte:salary_min',
-            'salary_period' => 'nullable|string|max:20',
-            'application_deadline' => 'required|date',
-            'is_featured' => 'boolean',
-            'is_published' => 'boolean',
-        ]);
-        
-        // Check if title changed, if so update slug
-        if ($jobPosting->title !== $request->title) {
-            $slug = Str::slug($request->title);
-            $baseSlug = $slug;
-            $counter = 1;
-            
-            // Ensure slug is unique (excluding current job)
-            while (JobPosting::where('slug', $slug)->where('id', '!=', $id)->exists()) {
-                $slug = $baseSlug . '-' . $counter;
-                $counter++;
-            }
-            
-            $jobPosting->slug = $slug;
+        $job = JobPosting::findOrFail($id);
+
+        if ($request->input('intent') === 'edit') {
+            return redirect()->route('jobs.edit', $job->id)->withInput();
         }
-        
-        // Update job posting
-        $jobPosting->title = $request->title;
-        $jobPosting->category_id = $request->category_id;
-        $jobPosting->location_id = $request->location_id;
-        $jobPosting->description = $request->description;
-        $jobPosting->requirements = $request->requirements;
-        $jobPosting->responsibilities = $request->responsibilities;
-        $jobPosting->benefits = $request->benefits;
-        $jobPosting->employment_type = $request->employment_type;
-        $jobPosting->experience_level = $request->experience_level;
-        $jobPosting->salary_min = $request->salary_min;
-        $jobPosting->salary_max = $request->salary_max;
-        $jobPosting->salary_period = $request->salary_period;
-        $jobPosting->application_deadline = $request->application_deadline;
-        $jobPosting->is_featured = $request->has('is_featured');
-        
-        // Handle publishing status change
-        $wasPublished = $jobPosting->is_published;
-        $jobPosting->is_published = $request->has('is_published');
-        
-        if (!$wasPublished && $jobPosting->is_published) {
-            // Job is being published for the first time
-            $jobPosting->published_at = Carbon::now();
-        }
-        
-        $jobPosting->save();
-        
-        // Handle remote location if needed
-        if ($request->has('is_remote') && !$request->location_id) {
-            // Check if a generic remote location exists or create one
-            $remoteLocation = JobLocation::firstOrCreate(
-                ['is_remote' => true, 'city' => 'Remote', 'country' => 'Worldwide'],
-                ['address' => 'Remote', 'postal_code' => '00000']
-            );
-            
-            $jobPosting->location_id = $remoteLocation->id;
-            $jobPosting->save();
-        }
-        
-        return redirect()->route('jobListings')
-            ->with('success', 'Job listing updated successfully!');
+
+        $this->fillFromRequest($job, $request, persist: true);
+        $job->save();
+
+        return redirect()->route('jobListings')->with('success', 'Job listing updated.');
     }
 
     public function publish($id)
     {
         $job = JobPosting::findOrFail($id);
-        $job->is_published = true;
-        $job->published_at = Carbon::now();
+
+        if ($job->application_deadline->isBefore(today())) {
+            return redirect()->back()->with('error', 'Extend the application deadline before publishing this job.');
+        }
+
+        $this->setPublished($job, true);
         $job->save();
-        
-        return redirect()->back()->with('success', 'Job listing published successfully!');
+
+        return redirect()->back()->with('success', 'Job listing published.');
     }
-    
 
     public function unpublish($id)
     {
         $job = JobPosting::findOrFail($id);
-        $job->is_published = false;
+        $this->setPublished($job, false);
         $job->save();
-        
-        return redirect()->back()->with('success', 'Job listing unpublished!');
+
+        return redirect()->back()->with('success', 'Job listing unpublished.');
     }
-    
-    /**
-     * Remove the specified job posting from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
     public function destroy($id)
     {
-        $job = JobPosting::findOrFail($id);
-        $job->delete();
-        
-        return redirect()->route('jobListings')
-            ->with('success', 'Job listing deleted successfully!');
+        JobPosting::findOrFail($id)->delete();
+
+        return redirect()->route('jobListings')->with('success', 'Job listing deleted.');
+    }
+
+    private function formOptions(): array
+    {
+        return [
+            'categories' => JobCategory::where('is_active', true)->orderBy('name')->get(),
+            'locations' => JobLocation::orderBy('country')->orderBy('city')->get(),
+        ];
+    }
+
+    /**
+     * Apply the form to the job. With $persist false (preview), a typed-in new
+     * category or location is built in memory only and nothing is saved.
+     */
+    private function fillFromRequest(JobPosting $job, JobPostingRequest $request, bool $persist): void
+    {
+        $data = $request->validated();
+
+        if ($job->title !== $data['title'] || ! $job->slug) {
+            $job->slug = $this->uniqueSlug(JobPosting::class, $data['title'], $job->id);
+        }
+
+        $category = $this->resolveCategory($data['category_id'] ?? null, $persist);
+        $location = $data['is_remote'] && empty($data['location_id'])
+            ? $this->remoteLocation($persist)
+            : $this->resolveLocation($data['location_id'] ?? null, $persist);
+
+        $job->fill(collect($data)->except(['category_id', 'location_id', 'is_remote', 'is_published'])->all());
+        $job->category_id = $category?->id;
+        $job->location_id = $location?->id;
+        $job->setRelation('category', $category);
+        $job->setRelation('location', $location);
+        $this->setPublished($job, $data['is_published']);
+    }
+
+    private function resolveCategory(?string $value, bool $persist): ?JobCategory
+    {
+        $name = JobPostingRequest::newName($value);
+
+        if ($name === null) {
+            return $value ? JobCategory::find($value) : null;
+        }
+
+        $category = JobCategory::whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->first()
+            ?? new JobCategory(['name' => $name, 'is_active' => true]);
+
+        if ($persist && ! $category->exists) {
+            $category->slug = $this->uniqueSlug(JobCategory::class, $name);
+            $category->save();
+        }
+
+        return $category;
+    }
+
+    private function resolveLocation(?string $value, bool $persist): ?JobLocation
+    {
+        $label = JobPostingRequest::newName($value);
+
+        if ($label === null) {
+            return $value ? JobLocation::find($value) : null;
+        }
+
+        $parts = JobLocation::parseLabel($label);
+        $location = JobLocation::whereRaw('LOWER(city) = ? AND LOWER(country) = ?', [mb_strtolower($parts['city']), mb_strtolower($parts['country'])])
+            ->where('is_remote', false)
+            ->first()
+            ?? new JobLocation($parts + ['is_remote' => false]);
+
+        if ($persist && ! $location->exists) {
+            $location->save();
+        }
+
+        return $location;
+    }
+
+    private function remoteLocation(bool $persist): JobLocation
+    {
+        $location = JobLocation::firstOrNew(
+            ['is_remote' => true, 'city' => 'Remote', 'country' => 'Worldwide'],
+            ['address' => 'Remote', 'postal_code' => '00000']
+        );
+
+        if ($persist && ! $location->exists) {
+            $location->save();
+        }
+
+        return $location;
+    }
+
+    private function setPublished(JobPosting $job, bool $published): void
+    {
+        // published_at marks when the current run went live; re-publishing restarts it.
+        if ($published && ! $job->is_published) {
+            $job->published_at = Carbon::now();
+        }
+
+        $job->is_published = $published;
+    }
+
+    /** @param class-string<\Illuminate\Database\Eloquent\Model> $model */
+    private function uniqueSlug(string $model, string $text, ?int $ignoreId = null): string
+    {
+        // Both slug columns are 100 chars; leave room for a "-N" suffix.
+        $base = rtrim(Str::limit(Str::slug($text), 90, ''), '-') ?: 'item';
+        $slug = $base;
+
+        for ($n = 2; $model::where('slug', $slug)->when($ignoreId, fn ($q) => $q->whereKeyNot($ignoreId))->exists(); $n++) {
+            $slug = "{$base}-{$n}";
+        }
+
+        return $slug;
     }
 
     /**

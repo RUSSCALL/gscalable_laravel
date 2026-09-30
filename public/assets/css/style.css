@@ -2829,6 +2829,53 @@ section {
   margin: 0;
 }
 
+/* Formatted copy from the admin editor (lists, headings, links). */
+.job-rich-text {
+  font-family: var(--gst-font-body);
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--gst-slate-700);
+}
+
+.job-rich-text > * + * {
+  margin-top: 12px;
+}
+
+.job-rich-text ul,
+.job-rich-text ol {
+  padding-left: 1.4em;
+  margin-bottom: 0;
+}
+
+.job-rich-text h3 {
+  font-family: var(--gst-font-heading);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--gst-navy-900);
+  margin: 20px 0 8px;
+}
+
+.job-rich-text blockquote {
+  border-left: 3px solid var(--gst-line);
+  padding-left: 14px;
+  margin: 0;
+  color: var(--gst-slate-500);
+}
+
+.job-rich-text a {
+  color: var(--gst-orange-600);
+  text-decoration: underline;
+}
+
+.job-rich-text pre {
+  white-space: pre-wrap;
+  background: var(--gst-white);
+  border: 1px solid var(--gst-line);
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 14px;
+}
+
 .job-detail-stats {
   display: flex;
   flex-wrap: wrap;

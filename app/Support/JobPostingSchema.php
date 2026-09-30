@@ -89,26 +89,20 @@ class JobPostingSchema
     }
 
     /**
-     * Google expects an HTML description. The stored copy is plain text with
-     * newlines, so escape it and convert the breaks rather than echoing raw.
+     * Google expects an HTML description. Each field is rendered the same way
+     * as on the job page: sanitized editor HTML, or escaped plain text.
      */
     private static function description(JobPosting $job): string
     {
-        $parts = array_filter([
-            $job->description,
-            $job->responsibilities ? '<strong>Responsibilities</strong>' . "\n" . $job->responsibilities : null,
-            $job->requirements ? '<strong>Requirements</strong>' . "\n" . $job->requirements : null,
-            $job->benefits ? '<strong>Benefits</strong>' . "\n" . $job->benefits : null,
-        ]);
+        $html = RichText::render($job->description);
 
-        return implode('<br><br>', array_map(function ($part) {
-            // Keep the <strong> headings we just added, escape everything else.
-            return preg_replace(
-                '/&lt;(\/?strong)&gt;/',
-                '<$1>',
-                nl2br(e($part))
-            );
-        }, $parts));
+        foreach (['responsibilities' => 'Responsibilities', 'requirements' => 'Requirements', 'benefits' => 'Benefits'] as $field => $label) {
+            if ($job->$field) {
+                $html .= '<p><strong>' . $label . '</strong></p>' . RichText::render($job->$field);
+            }
+        }
+
+        return $html;
     }
 
     private static function employmentType(?string $value): ?string

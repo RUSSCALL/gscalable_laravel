@@ -50,6 +50,9 @@ Route::middleware(['auth' , 'verified' , 'can:user-is-admin'])->group(function()
     Route::get('/admin_dashboard', [AdminController::class, 'index'])->name('AdminDashboard');
     Route::get('/job_listings', [AdminController::class, 'listings'])->name('jobListings');
 
+    Route::get('/jobs/create', [AdminController::class, 'create'])->name('jobs.create');
+    Route::post('/jobs/preview', [AdminController::class, 'preview'])->name('jobs.preview');
+    Route::post('/jobs/{id}/preview', [AdminController::class, 'preview'])->name('jobs.preview.existing');
     Route::post('/jobs', [AdminController::class, 'store'])->name('jobs.store');
     Route::get('/jobs/{id}', [AdminController::class, 'show'])->name('jobs.show');
     Route::get('/jobs/{id}/edit', [AdminController::class, 'edit'])->name('jobs.edit');

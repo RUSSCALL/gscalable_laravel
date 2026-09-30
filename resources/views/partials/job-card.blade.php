@@ -24,7 +24,7 @@
 
     <h3 class="job-card-title">{{ $job->title }}</h3>
 
-    <p class="job-card-desc">{{ Str::limit(strip_tags($job->description), 160) }}</p>
+    <p class="job-card-desc">{{ Str::limit(\App\Support\RichText::plain($job->description), 160) }}</p>
 
     <span class="job-card-meta">
         @if(($featured ?? false) || $job->is_featured)
