@@ -233,7 +233,7 @@
               <div class="info-box mt-4">
                 <i class="bx bx-envelope"></i>
                 <h3>Email Us</h3>
-                <p><a href="mailto:reply@gscalabletech.com">reply@gscalabletech.com</a></p>
+                <p><a href="mailto:contact@gscalabletech.com">contact@gscalabletech.com</a></p>
               </div>
             </div>
             <div class="col-md-6 col-lg-12">

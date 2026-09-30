@@ -249,7 +249,7 @@ function shareJob(title, url) {
       let message = form.message.value.trim();
 
       let body = 'Name: ' + name + '\nEmail: ' + email + '\n\n' + message;
-      let mailto = 'mailto:reply@gscalabletech.com'
+      let mailto = 'mailto:contact@gscalabletech.com'
         + '?subject=' + encodeURIComponent(subject)
         + '&body=' + encodeURIComponent(body);
 
