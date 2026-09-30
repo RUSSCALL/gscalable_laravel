@@ -81,6 +81,13 @@
                         <i class="bi bi-bell"></i> Job Alerts
                     </a>
                 </li>
+                @can('user-is-superadmin')
+                    <li class="sidebar-item">
+                        <a href="{{ route('admin.roles') }}" class="sidebar-link {{ Route::is('admin.roles') ? 'active' : '' }}">
+                            <i class="bi bi-shield-lock"></i> Roles
+                        </a>
+                    </li>
+                @endcan
         
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link">

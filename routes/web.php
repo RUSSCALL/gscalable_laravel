@@ -7,6 +7,7 @@ use App\Http\Controllers\JobApplicantController;
 use App\Http\Controllers\ApplicantAccountController;
 use App\Http\Controllers\ApplicantDashboardController;
 use App\Http\Controllers\AuthRedirectsController;
+use App\Http\Controllers\UserRoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +67,12 @@ Route::middleware(['auth' , 'verified' , 'can:user-is-admin'])->group(function()
     // Job alerts: read-only list plus ?export=csv.
     Route::get('/admin/job-alerts', [AdminController::class, 'jobAlerts'])->name('admin.job-alerts');
 
+});
+
+// SuperAdmin Routes: granting and removing admin access.
+Route::middleware(['auth', 'verified', 'can:user-is-superadmin'])->group(function () {
+    Route::get('/admin/roles', [UserRoleController::class, 'index'])->name('admin.roles');
+    Route::put('/admin/roles/{user}', [UserRoleController::class, 'update'])->name('admin.roles.update');
 });
 
 
