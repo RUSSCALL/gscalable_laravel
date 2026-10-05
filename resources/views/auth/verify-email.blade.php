@@ -10,8 +10,9 @@
     <meta content="GST, Global Scalable Technologies, verify email address,  cybersecurity, cloud services, digital transformation, security solutions, IT services, enterprise technology" name="keywords">
   
     <!-- Favicons -->
-    <link href="{{ asset('assets/img/Favicon1.jpg')}}" rel="icon">
-    <link href="{{ asset('assets/img/Favicon1.jpg')}}" rel="apple-touch-icon">
+    <link href="{{ asset('favicon.ico') }}" rel="icon" sizes="16x16 32x32 48x48">
+    <link href="{{ asset('favicon-192.png') }}" rel="icon" type="image/png" sizes="192x192">
+    <link href="{{ asset('apple-touch-icon.png') }}" rel="apple-touch-icon">
     <link href="{{asset('assets/css/login_signup.css')}}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 

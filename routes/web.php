@@ -7,6 +7,7 @@ use App\Http\Controllers\JobApplicantController;
 use App\Http\Controllers\ApplicantAccountController;
 use App\Http\Controllers\ApplicantDashboardController;
 use App\Http\Controllers\AuthRedirectsController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\UserRoleController;
 
 /*
@@ -35,6 +36,8 @@ Route::get('/privacy', function() {
 Route::get('/terms', function() {
     return view('terms');
 })->name('terms');
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 
 

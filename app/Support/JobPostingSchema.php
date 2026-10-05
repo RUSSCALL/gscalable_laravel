@@ -62,7 +62,7 @@ class JobPostingSchema
                 '@type' => 'Organization',
                 'name' => 'Global Scalable Technologies',
                 'sameAs' => url('/'),
-                'logo' => asset('assets/img/Favicon1.jpg'),
+                'logo' => asset('assets/img/gst-logo-square.png'),
             ],
             'url' => route('careers.show', $job->slug),
         ];

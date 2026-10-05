@@ -1,5 +1,8 @@
 @extends('main_layout')
 
+@section('title', 'Terms of Service — Global Scalable Technologies')
+@section('meta_description', 'The terms that govern your use of the Global Scalable Technologies website, GST Portal accounts and job application services.')
+
 @section('main_content')
 
 <!-- ======= Terms of Service Hero ======= -->
@@ -157,7 +160,7 @@
                 <p>
                     Global Scalable Technologies<br>
                     Email: <a href="mailto:contact@gscalabletech.com">contact@gscalabletech.com</a><br>
-                    Phone: <a href="tel:+12403198823">+1 240-319-8823</a>
+                    Phone: <a href="tel:+12028195975">+1 202-819-5975</a>
                 </p>
             </div>
         </div>

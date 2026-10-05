@@ -5,8 +5,8 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  {{-- Pages set their own title/description via @section and @push. The
-       defaults below apply to any page that doesn't. --}}
+  {{-- Pages set their own title/description/canonical via @section and @push.
+       The defaults below apply to any page that doesn't. --}}
   @hasSection('title')
     <title>@yield('title')</title>
   @else
@@ -17,9 +17,13 @@
     <meta name="description" content="@yield('meta_description')">
   @endif
 
+  <link rel="canonical" href="@yield('canonical', url()->current())">
+  <meta property="og:site_name" content="Global Scalable Technologies">
+
   <!-- Favicons -->
-  <link href="{{ asset('assets/img/Favicon1.jpg')}}" rel="icon">
-  <link href="{{ asset('assets/img/Favicon1.jpg')}}" rel="apple-touch-icon">
+  <link href="{{ asset('favicon.ico') }}" rel="icon" sizes="16x16 32x32 48x48">
+  <link href="{{ asset('favicon-192.png') }}" rel="icon" type="image/png" sizes="192x192">
+  <link href="{{ asset('apple-touch-icon.png') }}" rel="apple-touch-icon">
 
   {{-- Per-page <head> additions (e.g. LCP image preload) — must come before stylesheets --}}
   @stack('head')

@@ -1,5 +1,8 @@
 @extends('main_layout')
 
+@section('title', 'Privacy Policy — Global Scalable Technologies')
+@section('meta_description', 'How Global Scalable Technologies collects, uses and protects the personal information you share through our website, GST Portal and job applications.')
+
 @section('main_content')
 
 <!-- ======= Privacy Policy Hero ======= -->
@@ -139,7 +142,7 @@
                 <p>
                     Global Scalable Technologies<br>
                     Email: <a href="mailto:contact@gscalabletech.com">contact@gscalabletech.com</a><br>
-                    Phone: <a href="tel:+12403198823">+1 240-319-8823</a>
+                    Phone: <a href="tel:+12028195975">+1 202-819-5975</a>
                 </p>
             </div>
         </div>

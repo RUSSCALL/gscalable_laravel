@@ -24,9 +24,9 @@
 
 @section('title', $job->title . ' — Careers — Global Scalable Technologies')
 @section('meta_description', $metaDescription)
+@section('canonical', $canonical)
 
 @push('head')
-<link rel="canonical" href="{{ $canonical }}">
 <meta property="og:type" content="article">
 <meta property="og:title" content="{{ $job->title }} — Global Scalable Technologies">
 <meta property="og:description" content="{{ $metaDescription }}">

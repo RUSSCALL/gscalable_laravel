@@ -3,10 +3,6 @@
 @section('title', 'Careers — Global Scalable Technologies')
 @section('meta_description', 'Explore open roles at Global Scalable Technologies. Cybersecurity, cloud and IT modernization careers supporting U.S. federal agencies and enterprise clients.')
 
-@push('head')
-<link rel="canonical" href="{{ url()->current() }}">
-@endpush
-
 @section('main_content')
 
 <!-- ======= Careers Hero ======= -->

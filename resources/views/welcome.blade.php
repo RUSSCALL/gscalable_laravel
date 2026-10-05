@@ -1,9 +1,42 @@
 @extends('main_layout')
 
+@section('title', 'Global Scalable Technologies — Cybersecurity Built to Scale')
+@section('meta_description', 'Global Scalable Technologies (GST) delivers cybersecurity, cloud and DevSecOps services to federal agencies and enterprise clients, engineered by a certified team.')
+
+{{-- Google reads the site name shown in search results from the WebSite entry. --}}
+@php
+  $homeUrl = url('/');
+  $siteSchema = [
+    '@context' => 'https://schema.org',
+    '@graph' => [
+      [
+        '@type' => 'Organization',
+        '@id' => $homeUrl . '#organization',
+        'name' => 'Global Scalable Technologies',
+        'alternateName' => 'GST',
+        'url' => $homeUrl,
+        'logo' => asset('assets/img/gst-logo-square.png'),
+        'email' => 'contact@gscalabletech.com',
+        'telephone' => '+1-202-819-5975',
+        'sameAs' => ['https://www.linkedin.com/company/global-scalable-technologies'],
+      ],
+      [
+        '@type' => 'WebSite',
+        '@id' => $homeUrl . '#website',
+        'name' => 'Global Scalable Technologies',
+        'alternateName' => 'GST',
+        'url' => $homeUrl,
+        'publisher' => ['@id' => $homeUrl . '#organization'],
+      ],
+    ],
+  ];
+@endphp
+
 {{-- Give the hero image absolute loading priority: the browser starts fetching it
      as soon as the HTML <head> is parsed, before CSS/fonts/JS. --}}
 @push('head')
   <link rel="preload" as="image" href="{{ asset('assets/img/hero-security-lock.png') }}" fetchpriority="high">
+  <script type="application/ld+json">{!! json_encode($siteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @endpush
 
 @section('main_content')
@@ -240,7 +273,7 @@
               <div class="info-box mt-4">
                 <i class="bx bx-phone-call"></i>
                 <h3>Call Us</h3>
-                <p><a href="tel:+12403198823">+1 202-819-5975</a></p>
+                <p><a href="tel:+12028195975">+1 202-819-5975</a></p>
               </div>
             </div>
           </div>

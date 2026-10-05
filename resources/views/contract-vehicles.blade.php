@@ -1,5 +1,8 @@
 @extends('main_layout')
 
+@section('title', 'Contract Vehicles — Global Scalable Technologies')
+@section('meta_description', 'Federal agencies and partners Global Scalable Technologies supports, including DHS, the U.S. Coast Guard, U.S. Air Force and VA, with cybersecurity, IT and mission support services.')
+
 @section('main_content')
 
 <!-- ======= Contract Vehicles Hero ======= -->
