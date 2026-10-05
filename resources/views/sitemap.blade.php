@@ -1,4 +1,4 @@
-{!! '<?xml version="1.0" encoding="UTF-8"?>' !!}
+{!! '<' . '?xml version="1.0" encoding="UTF-8"?>' !!}{{-- split so servers with short_open_tag on don't read it as a PHP tag --}}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 @foreach (['home', 'contract_vehicles', 'careers', 'privacy', 'terms'] as $page)
   <url>
