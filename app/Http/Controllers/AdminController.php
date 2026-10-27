@@ -96,7 +96,7 @@ class AdminController extends Controller
     {
         $applications = JobApplication::with('jobPosting:id,title')->latest()->limit(5)->get()
             ->map(fn ($application) => [
-                'icon' => 'bi-person-plus text-primary',
+                'icon' => 'bi-person-plus',
                 'text' => 'New application for',
                 'subject' => $application->jobPosting->title ?? 'a deleted job',
                 'url' => route('admin.applicants.show', $application),
@@ -105,7 +105,7 @@ class AdminController extends Controller
 
         $interviews = Interview::with('application.jobPosting:id,title')->latest()->limit(5)->get()
             ->map(fn ($interview) => [
-                'icon' => 'bi-calendar-check text-success',
+                'icon' => 'bi-calendar-check',
                 'text' => 'Interview scheduled for',
                 'subject' => $interview->application->jobPosting->title ?? 'a deleted job',
                 'url' => route('admin.applicants.show', $interview->job_application_id),
@@ -114,7 +114,7 @@ class AdminController extends Controller
 
         $jobs = JobPosting::latest('updated_at')->limit(5)->get(['id', 'title', 'created_at', 'updated_at'])
             ->map(fn ($job) => [
-                'icon' => 'bi-pencil-square text-warning',
+                'icon' => 'bi-pencil-square',
                 'text' => $job->updated_at->eq($job->created_at) ? 'Job listing created:' : 'Job listing updated:',
                 'subject' => $job->title,
                 'url' => route('jobs.show', $job->id),
