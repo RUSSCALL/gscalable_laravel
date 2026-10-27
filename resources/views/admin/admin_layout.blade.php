@@ -8,7 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/admin_dashboard.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ \App\Support\VersionedAsset::url('assets/css/admin_dashboard.css') }}">
     @stack('head')
 </head>
             <!-- Flash Notification JS -->
@@ -156,7 +156,7 @@
     	<!-- Flash-Notifcation js -->
 	@component('components.notification_flash_js')
 	@endcomponent
-    <script src="{{ asset('assets/js/admin_dashboard.js')}}"></script>
+    <script src="{{ \App\Support\VersionedAsset::url('assets/js/admin_dashboard.js') }}"></script>
     @yield('scripts')
 </body>
 </html>

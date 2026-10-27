@@ -40,7 +40,7 @@
   <link href="{{ asset('assets/vendor/boxicons/css/boxicons.min.css')}}" rel="stylesheet">
 
   <!-- Template Main CSS File -->
-  <link href="{{asset('assets/css/style.css')}}" rel="stylesheet">
+  <link href="{{ \App\Support\VersionedAsset::url('assets/css/style.css') }}" rel="stylesheet">
 </head>
             <!-- Flash Notification JS -->
             @component('components.notification_flash')
@@ -61,9 +61,9 @@
   <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
 
   <!-- Template Main JS File -->
-  <script src="{{ asset('assets/js/main.js')}}"></script>
+  <script src="{{ \App\Support\VersionedAsset::url('assets/js/main.js') }}"></script>
   <!-- Footer Globe Animation -->
-  <script src="{{ asset('assets/js/footer-globe.js')}}"></script>
+  <script src="{{ \App\Support\VersionedAsset::url('assets/js/footer-globe.js') }}"></script>
             <!-- Flash Notification JS -->
             @component('components.notification_flash_js')
             @endcomponent

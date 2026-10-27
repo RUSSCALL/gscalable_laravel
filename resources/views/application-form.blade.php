@@ -537,6 +537,6 @@
     </div>
 </section><!-- End Application Form -->
 
-<script src="{{ asset('assets/js/application-form.js') }}"></script>
+<script src="{{ \App\Support\VersionedAsset::url('assets/js/application-form.js') }}"></script>
 
 @endsection

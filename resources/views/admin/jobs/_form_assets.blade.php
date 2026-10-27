@@ -14,5 +14,5 @@
 @section('scripts')
     <script src="{{ asset('assets/vendor/tom-select-2.6.2/tom-select.complete.min.js') }}"></script>
     <script src="{{ asset('assets/vendor/trix-2.1.19/trix.umd.min.js') }}"></script>
-    <script src="{{ asset('assets/js/admin_job_form.js') }}"></script>
+    <script src="{{ \App\Support\VersionedAsset::url('assets/js/admin_job_form.js') }}"></script>
 @endsection
