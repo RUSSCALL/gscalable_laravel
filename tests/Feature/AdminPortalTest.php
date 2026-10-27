@@ -224,6 +224,12 @@ class AdminPortalTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.applicants.download', [$application, 'resume']))->assertDownload('resume-morgan-lee.pdf');
         $this->actingAs($admin)->get(route('admin.applicants.download', [$application, $application->attachments->first()->id]))->assertOk();
+
+        // A file that's gone from storage sends the admin back with a message, not a 404.
+        Storage::disk(config('filesystems.uploads'))->delete($application->resume_path);
+        $this->actingAs($admin)->get(route('admin.applicants.download', [$application, 'resume']))
+            ->assertRedirect(route('admin.applicants.show', $application))
+            ->assertSessionHas('error', 'Resume is no longer available. Ask the candidate to send it again.');
     }
 
     public function test_only_admins_reach_applicants_and_their_files(): void

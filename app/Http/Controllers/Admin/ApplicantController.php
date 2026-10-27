@@ -91,7 +91,12 @@ class ApplicantController extends Controller
         };
 
         $disk = JobApplication::disk();
-        abort_unless($path && $disk->exists($path), 404);
+
+        // Files uploaded before the move to S3 were wiped from the server by deploys.
+        if (! $path || ! $disk->exists($path)) {
+            return redirect()->route('admin.applicants.show', $application)
+                ->with('error', $name . ' is no longer available. Ask the candidate to send it again.');
+        }
 
         $downloadName = Str::slug($name . ' ' . $application->full_name) . '.' . pathinfo($path, PATHINFO_EXTENSION);
 
