@@ -172,7 +172,7 @@ class CareersPhase1Test extends TestCase
             ->assertOk()
             ->getContent();
 
-        foreach (['phone', 'years_of_experience', 'education', 'highest_degree'] as $field) {
+        foreach (['phone', 'current_location', 'years_of_experience', 'education', 'highest_degree', 'availability', 'work_authorization'] as $field) {
             $this->assertMatchesRegularExpression(
                 '/id="' . $field . '"[^>]*required/',
                 $html,
@@ -191,6 +191,7 @@ class CareersPhase1Test extends TestCase
                 'first_name', 'last_name', 'email', 'phone',
                 'resume_path', 'education', 'highest_degree',
                 'years_of_experience', 'terms_agree',
+                'current_location', 'availability', 'work_authorization', 'willing_to_relocate',
             ]);
     }
 

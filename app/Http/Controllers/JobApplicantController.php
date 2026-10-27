@@ -13,6 +13,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ApplicationConfirmation;
 use App\Models\User;
+use App\Models\DisabilitySelfIdentification;
+use App\Notifications\NewApplicationReceived;
+use Illuminate\Support\Facades\Notification;
 use App\Http\Requests\StoreJobApplicationRequest;
 use App\Support\JobPostingSchema;
 
@@ -228,7 +231,7 @@ class JobApplicantController extends Controller
      */
     public function apply($slug)
     {
-        $job = JobPosting::with(['category', 'location'])
+        $job = JobPosting::with(['category', 'location', 'screenerQuestions'])
             ->where('slug', $slug)
             ->active()
             ->firstOrFail();
@@ -284,9 +287,15 @@ class JobApplicantController extends Controller
                 ->with('error', 'An application for this role has already been submitted with that email address.');
         }
 
+        $disk = JobApplication::disk();
+
         $data = $request->applicationData();
         $data['job_posting_id'] = $job->id;
-        $data['resume_path'] = $request->file('resume_path')->store('resumes', 'public');
+        $data['resume_path'] = $disk->putFile('resumes', $request->file('resume_path'));
+
+        if ($request->hasFile('cover_letter_file')) {
+            $data['cover_letter_path'] = $disk->putFile('cover-letters', $request->file('cover_letter_file'));
+        }
 
         if (auth()->check()) {
             $data['user_id'] = auth()->id();
@@ -294,7 +303,30 @@ class JobApplicantController extends Controller
 
         $application = JobApplication::create($data);
 
+        foreach ($request->file('attachments', []) as $file) {
+            $application->attachments()->create([
+                'path' => $disk->putFile('attachments', $file),
+                'original_name' => mb_substr($file->getClientOriginalName(), 0, 191),
+                'size' => $file->getSize(),
+            ]);
+        }
+
+        $this->recordScreenerAnswers($application, $request->screenerQuestions(), $request->input('screener', []));
+
+        if ($request->filled('disability_status')) {
+            DisabilitySelfIdentification::create([
+                'job_application_id' => $application->id,
+                'status' => $request->input('disability_status'),
+            ]);
+        }
+
         JobPosting::where('id', $job->id)->increment('applications_count');
+
+        try {
+            Notification::send(User::admins()->get(), new NewApplicationReceived($application));
+        } catch (\Exception $e) {
+            Log::error('Failed to notify admins of a new application: ' . $e->getMessage());
+        }
 
         try {
             Mail::to($application->email)
@@ -316,6 +348,24 @@ class JobApplicantController extends Controller
         ]);
 
         return redirect()->route('careers.applied', $job->slug);
+    }
+
+    // Answers copy the question so later edits to the job never change this rank.
+    private function recordScreenerAnswers(JobApplication $application, $questions, array $answers): void
+    {
+        if ($questions->isEmpty()) {
+            return;
+        }
+
+        $saved = $questions->map(fn ($question) => $application->screenerAnswers()->create([
+            'job_screener_question_id' => $question->id,
+            'question' => $question->question,
+            'importance' => $question->importance,
+            'required_answer' => $question->required_answer,
+            'answer' => (bool) $answers[$question->id],
+        ]));
+
+        $application->forceFill(['screener_rank' => JobApplication::rankFor($saved)])->save();
     }
 
     /**

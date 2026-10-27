@@ -24,6 +24,9 @@
                             <i class="bi bi-box-arrow-up-right me-2"></i> View public page
                         </a>
                     @endif
+                    <a href="{{ route('admin.applicants.index', ['job' => $job->id]) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-people me-2"></i> View applications
+                    </a>
                     <a href="{{ route('jobs.edit', $job->id) }}" class="btn btn-gst">
                         <i class="bi bi-pencil me-2"></i> Edit
                     </a>
@@ -57,6 +60,7 @@
                                     @elseif($job->location) {{ $job->location->city }}, {{ $job->location->country }}
                                     @else &mdash; @endif
                                 </dd>
+                                <dt>Work arrangement</dt><dd>{{ $job->work_arrangement_label }}</dd>
                                 <dt>Employment type</dt><dd>{{ $job->employment_type }}</dd>
                                 <dt>Experience level</dt><dd>{{ $job->experience_level }}</dd>
                                 <dt>Salary</dt><dd>{{ $job->salary_range }}</dd>
@@ -66,6 +70,23 @@
                                 <dt>Published</dt><dd>{{ $job->published_at?->format('M d, Y') ?? '—' }}</dd>
                                 <dt>Created</dt><dd>{{ $job->created_at->format('M d, Y') }}@if($job->creator) by {{ $job->creator->name }}@endif</dd>
                             </dl>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header"><h5 class="mb-0">Screener questions</h5></div>
+                        <div class="card-body">
+                            @forelse($job->screenerQuestions as $question)
+                                <div class="mb-2">
+                                    <div>{{ $question->question }}</div>
+                                    <small class="text-muted">
+                                        {{ \App\Models\JobScreenerQuestion::IMPORTANCE[$question->importance] ?? $question->importance }}
+                                        &middot; needs "{{ $question->required_answer ? 'Yes' : 'No' }}"
+                                    </small>
+                                </div>
+                            @empty
+                                <p class="text-muted mb-0">None. Applications for this job aren't ranked.</p>
+                            @endforelse
                         </div>
                     </div>
                 </div>

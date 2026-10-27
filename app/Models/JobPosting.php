@@ -15,11 +15,14 @@ class JobPosting extends Model
 
     public const SALARY_PERIODS = ['Hourly', 'Monthly', 'Annual'];
 
+    public const WORK_ARRANGEMENTS = ['remote' => 'Remote', 'hybrid' => 'Hybrid', 'on_site' => 'On-site'];
+
     protected $fillable = [
         'title',
         'slug',
         'category_id',
         'location_id',
+        'work_arrangement',
         'created_by',
         'description',
         'requirements',
@@ -45,6 +48,7 @@ class JobPosting extends Model
     protected $casts = [
         'application_deadline' => 'date',
         'published_at' => 'datetime',
+        'expiry_notified_at' => 'datetime',
         'is_featured' => 'boolean',
         'is_published' => 'boolean',
         'salary_min' => 'decimal:2',
@@ -91,6 +95,31 @@ class JobPosting extends Model
     public function applications()
     {
         return $this->hasMany(JobApplication::class);
+    }
+
+    public function screenerQuestions()
+    {
+        return $this->hasMany(JobScreenerQuestion::class)->orderBy('position');
+    }
+
+    public function getWorkArrangementLabelAttribute(): string
+    {
+        return self::WORK_ARRANGEMENTS[$this->work_arrangement] ?? 'On-site';
+    }
+
+    // A method, not an accessor, so it never shadows the joined job_locations.is_remote column.
+    public function isRemote(): bool
+    {
+        return $this->work_arrangement === 'remote' || (bool) $this->location?->is_remote;
+    }
+
+    public function getLocationLabelAttribute(): string
+    {
+        if ($this->isRemote()) {
+            return 'Remote';
+        }
+
+        return $this->location ? trim($this->location->city . ', ' . $this->location->country, ', ') : 'Location flexible';
     }
 
     /**

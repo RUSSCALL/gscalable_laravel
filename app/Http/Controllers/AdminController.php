@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use App\Models\JobPosting;
 use App\Models\JobCategory;
 use App\Models\JobLocation;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\JobApplication;
+use App\Models\Interview;
 use App\Models\JobAlertSubscription;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +18,13 @@ use App\Http\Requests\JobPostingRequest;
 
 class AdminController extends Controller
 {
+    public const LISTING_FILTERS = [
+        'featured' => 'Featured jobs',
+        'most_applications' => 'Most applications',
+        'recent' => 'Recently added (30 days)',
+        'expiring' => 'Expiring soon (7 days)',
+    ];
+
     public function index(){
            // Gather dashboard statistics using Eloquent models
         $dashboardStats = [
@@ -27,8 +36,7 @@ class AdminController extends Controller
                         ->whereNull('reviewed_at')
                         ->count(),
                     
-                    'interviews_scheduled' => JobApplication::where('status', 'interview_scheduled')
-                        ->count(),
+                    'interviews_scheduled' => Interview::upcoming()->count(),
                     
                     'hired_this_month' => JobApplication::where('status', 'hired')
                         ->whereMonth('updated_at', now()->month)
@@ -43,6 +51,7 @@ class AdminController extends Controller
                         'job_categories.name as department',
                         'job_locations.city as location',
                         'job_locations.is_remote',
+                        'job_postings.work_arrangement',
                         'job_postings.applications_count',
                         'job_postings.is_published',
                         'job_postings.application_deadline',
@@ -54,29 +63,65 @@ class AdminController extends Controller
                     ->limit(5)
                     ->get()
                     ->map(function ($job) {
-                        // Determine the status label
-                        $status = 'Closed';
+                        $status = 'Draft';
                         if ($job->is_published && ! $job->application_deadline->isBefore(today())) {
                             $status = 'Active';
                         } elseif ($job->is_published) {
-                            $status = 'Pending';
+                            $status = 'Expired';
                         }
                         
-                        // Format the location
-                        $location = $job->is_remote ? 'Remote' : $job->location;
-                        
+                        $location = $job->is_remote || $job->work_arrangement === 'remote' ? 'Remote' : $job->location;
+                        if ($job->work_arrangement === 'hybrid') {
+                            $location = trim($location . ' (Hybrid)');
+                        }
+
                         return [
                             'id' => $job->id,
                             'title' => $job->title,
-                            'department' => $job->department,
+                            'department' => $job->department ?? 'Uncategorized',
                             'location' => $location,
                             'applications' => $job->applications_count,
                             'status' => $status,
                         ];
                     });
                 
-                // Pass the stats to the view
-                return view('admin.dashboard', compact('dashboardStats', 'recentJobs'));
+                return view('admin.dashboard', [
+                    'dashboardStats' => $dashboardStats,
+                    'recentJobs' => $recentJobs,
+                    'recentActivity' => $this->recentActivity(),
+                ]);
+    }
+
+    private function recentActivity()
+    {
+        $applications = JobApplication::with('jobPosting:id,title')->latest()->limit(5)->get()
+            ->map(fn ($application) => [
+                'icon' => 'bi-person-plus text-primary',
+                'text' => 'New application for',
+                'subject' => $application->jobPosting->title ?? 'a deleted job',
+                'url' => route('admin.applicants.show', $application),
+                'at' => $application->created_at,
+            ]);
+
+        $interviews = Interview::with('application.jobPosting:id,title')->latest()->limit(5)->get()
+            ->map(fn ($interview) => [
+                'icon' => 'bi-calendar-check text-success',
+                'text' => 'Interview scheduled for',
+                'subject' => $interview->application->jobPosting->title ?? 'a deleted job',
+                'url' => route('admin.applicants.show', $interview->job_application_id),
+                'at' => $interview->created_at,
+            ]);
+
+        $jobs = JobPosting::latest('updated_at')->limit(5)->get(['id', 'title', 'created_at', 'updated_at'])
+            ->map(fn ($job) => [
+                'icon' => 'bi-pencil-square text-warning',
+                'text' => $job->updated_at->eq($job->created_at) ? 'Job listing created:' : 'Job listing updated:',
+                'subject' => $job->title,
+                'url' => route('jobs.show', $job->id),
+                'at' => $job->updated_at,
+            ]);
+
+        return $applications->concat($interviews)->concat($jobs)->sortByDesc('at')->take(5)->values();
     }
 
 
@@ -112,26 +157,82 @@ class AdminController extends Controller
             });
         }
         
+        $filter = array_key_exists((string) $request->get('filter'), self::LISTING_FILTERS) ? $request->get('filter') : null;
+
+        switch ($filter) {
+            case 'featured':
+                $query->where('is_featured', true);
+                break;
+            case 'most_applications':
+                $query->orderByDesc(JobApplication::selectRaw('count(*)')->whereColumn('job_applications.job_posting_id', 'job_postings.id'));
+                break;
+            case 'recent':
+                $query->where('created_at', '>=', now()->subDays(30));
+                break;
+            case 'expiring':
+                $query->active()
+                    ->whereDate('application_deadline', '<=', today()->addDays(7))
+                    ->orderBy('application_deadline');
+                break;
+        }
+
         // Apply sorting
         $sortField = in_array($request->get('sort'), ['created_at', 'title', 'application_deadline', 'published_at'], true)
             ? $request->get('sort')
             : 'created_at';
         $sortDirection = $request->get('direction') === 'asc' ? 'asc' : 'desc';
-        
+
         $query->orderBy($sortField, $sortDirection);
-        
+
+        if ($request->get('export') === 'csv') {
+            return $this->exportListings($query->get());
+        }
+
         // Get simplePaginated results
-        $jobPostings = $query->simplePaginate(10);
+        $jobPostings = $query->simplePaginate(10)->withQueryString();
         
         // Get categories and locations for filters and form
         $categories = JobCategory::where('is_active', true)->orderBy('name')->get();
         $locations = JobLocation::orderBy('country')->orderBy('city')->get();
         
         return view('admin.job_listings', compact(
-            'jobPostings', 
-            'categories', 
-            'locations'
+            'jobPostings',
+            'categories',
+            'locations',
+            'filter'
         ));
+    }
+
+    private function exportListings($jobs): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($jobs) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'Title', 'Category', 'Location', 'Work arrangement', 'Employment type', 'Experience level',
+                'Applications', 'Deadline', 'Status', 'Featured', 'Created',
+            ]);
+
+            foreach ($jobs as $job) {
+                fputcsv($handle, [
+                    $job->title,
+                    $job->category->name ?? 'Uncategorized',
+                    $job->location_label,
+                    $job->work_arrangement_label,
+                    $job->employment_type,
+                    $job->experience_level,
+                    $job->applications_count,
+                    $job->application_deadline->format('Y-m-d'),
+                    $job->is_published ? ($job->application_deadline->isBefore(today()) ? 'Expired' : 'Published') : 'Draft',
+                    $job->is_featured ? 'Yes' : 'No',
+                    $job->created_at->format('Y-m-d'),
+                ]);
+            }
+
+            fclose($handle);
+        }, 'job-listings-' . now()->format('Y-m-d') . '.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
     
 
@@ -149,8 +250,12 @@ class AdminController extends Controller
         $job = $id ? JobPosting::findOrFail($id) : (new JobPosting())->forceFill(['views_count' => 0, 'applications_count' => 0]);
         $this->fillFromRequest($job, $request, persist: false);
 
-        $fields = collect($request->validated())
-            ->map(fn ($value) => is_bool($value) ? (int) $value : $value)
+        // Flattened to "screener_questions[0][question]" so nested rows survive as hidden inputs.
+        $fields = collect(Arr::dot($request->validated()))
+            ->reject(fn ($value) => is_array($value))
+            ->mapWithKeys(fn ($value, $key) => [
+                preg_replace('/\.([^.]+)/', '[$1]', $key) => is_bool($value) ? (int) $value : $value,
+            ])
             ->all();
 
         return view('job-posting', [
@@ -176,6 +281,7 @@ class AdminController extends Controller
         $job->created_by = Auth::id();
         $this->fillFromRequest($job, $request, persist: true);
         $job->save();
+        $this->syncScreenerQuestions($job, $request->validated('screener_questions', []));
 
         return redirect()->route('jobListings')->with('success', $job->is_published
             ? 'Job listing created and published.'
@@ -184,7 +290,7 @@ class AdminController extends Controller
 
     public function show($id)
     {
-        $job = JobPosting::with(['category', 'location', 'creator'])
+        $job = JobPosting::with(['category', 'location', 'creator', 'screenerQuestions'])
             ->withCount('applications')
             ->findOrFail($id);
 
@@ -206,6 +312,7 @@ class AdminController extends Controller
 
         $this->fillFromRequest($job, $request, persist: true);
         $job->save();
+        $this->syncScreenerQuestions($job, $request->validated('screener_questions', []));
 
         return redirect()->route('jobListings')->with('success', 'Job listing updated.');
     }
@@ -265,12 +372,32 @@ class AdminController extends Controller
             ? $this->remoteLocation($persist)
             : $this->resolveLocation($data['location_id'] ?? null, $persist);
 
-        $job->fill(collect($data)->except(['category_id', 'location_id', 'is_remote', 'is_published'])->all());
+        $job->fill(collect($data)->except(['category_id', 'location_id', 'is_remote', 'is_published', 'screener_questions'])->all());
         $job->category_id = $category?->id;
         $job->location_id = $location?->id;
         $job->setRelation('category', $category);
         $job->setRelation('location', $location);
         $this->setPublished($job, $data['is_published']);
+
+        // A new deadline earns a fresh "expiring soon" warning.
+        if ($job->isDirty('application_deadline')) {
+            $job->expiry_notified_at = null;
+        }
+    }
+
+    // Existing applications keep their own copy of each question, so replacing the set is safe.
+    private function syncScreenerQuestions(JobPosting $job, array $rows): void
+    {
+        $job->screenerQuestions()->delete();
+
+        foreach (array_values($rows) as $position => $row) {
+            $job->screenerQuestions()->create([
+                'question' => trim($row['question']),
+                'importance' => $row['importance'],
+                'required_answer' => (bool) $row['required_answer'],
+                'position' => $position,
+            ]);
+        }
     }
 
     private function resolveCategory(?string $value, bool $persist): ?JobCategory

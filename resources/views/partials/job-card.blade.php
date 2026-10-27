@@ -12,13 +12,7 @@
 
 <a href="{{ route('careers.show', $job->slug) }}" class="job-card gst-card-base">
     <span class="job-card-eyebrow">
-        <span>
-            @if($job->location)
-                {{ $job->location->is_remote ? 'Remote' : $job->location->city . ', ' . $job->location->country }}
-            @else
-                Location flexible
-            @endif
-        </span>
+        <span>{{ $job->location_label }}</span>
         <span>{{ date('Y') }}-{{ $job->id }}</span>
     </span>
 
@@ -30,6 +24,9 @@
         @if(($featured ?? false) || $job->is_featured)
             <span class="job-pill job-pill--featured">Featured</span>
         @endif
+        @unless($job->isRemote())
+            <span class="job-pill">{{ $job->work_arrangement_label }}</span>
+        @endunless
         <span class="job-pill">{{ $job->employment_type }}</span>
         <span class="job-pill">{{ $job->experience_level }}</span>
 

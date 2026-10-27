@@ -3087,7 +3087,8 @@ section {
   padding-bottom: 8px;
 }
 
-.application-section h2 {
+.application-section h2,
+.application-section h3 {
   font-family: var(--gst-font-heading);
   font-size: 18px;
   font-weight: 700;
@@ -3129,6 +3130,295 @@ section {
   margin: 0;
 }
 
+.application-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.application-fieldset legend {
+  float: none;
+  width: auto;
+  padding: 0;
+  font-family: var(--gst-font-label);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gst-slate-500);
+  margin-bottom: 8px;
+}
+
+.application-fieldset--question legend {
+  font-family: var(--gst-font-body);
+  font-size: 14.5px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--gst-slate-700);
+}
+
+.application-fieldset--question + .application-fieldset--question {
+  margin-top: 20px;
+}
+
+.application-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+.application-choices--stacked {
+  flex-direction: column;
+}
+
+.application-form .application-choices label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: var(--gst-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--gst-slate-700);
+  margin: 0;
+}
+
+.application-form .application-choices input[type="radio"] {
+  width: auto;
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--gst-orange-500);
+}
+
+/* -------- Multi-step application form -------- */
+.application-form [data-js-only][hidden] {
+  display: none;
+}
+
+.application-form.is-stepped .application-step:not(.is-active) {
+  display: none;
+}
+
+.application-stepper {
+  margin: 0 0 30px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--gst-line);
+}
+
+.application-stepper ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.application-stepper li {
+  position: relative;
+}
+
+/* Connector between neighbouring circles. */
+.application-stepper li + li::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: calc(-50% + 18px);
+  right: calc(50% + 26px);
+  height: 2px;
+  background: var(--gst-line);
+}
+
+.application-stepper-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--gst-slate-500);
+}
+
+.application-stepper-circle {
+  position: relative;
+  z-index: 1;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--gst-line);
+  background: var(--gst-white);
+  font-family: var(--gst-font-label);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gst-slate-500);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.application-stepper-circle .bi {
+  display: none;
+  font-size: 18px;
+}
+
+.application-stepper-label {
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.application-stepper-item:hover .application-stepper-circle {
+  border-color: var(--gst-orange-500);
+}
+
+.application-stepper-item:focus-visible {
+  outline: none;
+}
+
+.application-stepper-item:focus-visible .application-stepper-circle {
+  outline: 2px solid var(--gst-orange-500);
+  outline-offset: 3px;
+}
+
+.application-stepper-item.is-complete .application-stepper-circle {
+  background: #e8f6ee;
+  border-color: #2e8b57;
+  color: #2e8b57;
+}
+
+.application-stepper-item.is-complete .application-stepper-number {
+  display: none;
+}
+
+.application-stepper-item.is-complete .application-stepper-circle .bi {
+  display: inline;
+}
+
+.application-stepper-item.has-error .application-stepper-circle {
+  background: #fdecea;
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.application-stepper-item.is-current .application-stepper-circle {
+  background: var(--gst-orange-500);
+  border-color: var(--gst-orange-500);
+  color: var(--gst-white);
+}
+
+.application-stepper-item.is-current.has-error .application-stepper-circle {
+  background: #c0392b;
+  border-color: #c0392b;
+}
+
+.application-stepper-item.is-current .application-stepper-number {
+  display: inline;
+}
+
+.application-stepper-item.is-current .application-stepper-circle .bi {
+  display: none;
+}
+
+.application-stepper-item.is-current .application-stepper-label {
+  color: var(--gst-navy-900);
+}
+
+/* Steps are <section>s; undo the site-wide section padding. */
+.application-step {
+  padding: 0;
+  overflow: visible;
+}
+
+.application-step + .application-step {
+  margin-top: 36px;
+}
+
+.application-form.is-stepped .application-step + .application-step {
+  margin-top: 0;
+}
+
+.application-step-header {
+  margin-bottom: 26px;
+}
+
+.application-step-count {
+  font-family: var(--gst-font-label);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gst-orange-600);
+  margin: 0 0 4px;
+}
+
+.application-step-title {
+  font-family: var(--gst-font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gst-navy-900);
+  margin: 0;
+}
+
+.application-step-title:focus {
+  outline: none;
+}
+
+.application-step-nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.application-step-nav .btn-gst-primary {
+  margin-left: auto;
+  border: none;
+  cursor: pointer;
+}
+
+.application-submit {
+  display: flex;
+  gap: 12px;
+}
+
+.application-submit .btn-gst-outline {
+  flex-shrink: 0;
+}
+
+@media (max-width: 575px) {
+  .application-stepper-label {
+    display: none;
+  }
+
+  .application-stepper li + li::before {
+    left: calc(-50% + 16px);
+    right: calc(50% + 24px);
+  }
+
+  .application-step-nav,
+  .application-submit {
+    flex-direction: column-reverse;
+  }
+
+  .application-step-nav .btn-gst-primary,
+  .application-step-nav .btn-gst-outline,
+  .application-submit .btn-gst-outline {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+  }
+}
+
 .application-submit {
   margin-top: 30px;
 }
@@ -3155,6 +3445,11 @@ section {
   font-weight: 600;
   color: #8f2b20;
   margin: 0;
+}
+
+.application-error-summary p + p {
+  margin-top: 6px;
+  font-weight: 500;
 }
 
 /* -------- Aside cards on the form -------- */

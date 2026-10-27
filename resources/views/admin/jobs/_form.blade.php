@@ -56,18 +56,21 @@
                     @endif
                 </select>
                 @error('location_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <div class="form-text">Pick one, or type a new one as "City, Country".</div>
-                <div class="form-check mt-2">
-                    <input type="hidden" name="is_remote" value="0">
-                    <input class="form-check-input" type="checkbox" id="is_remote" name="is_remote" value="1"
-                           @checked(old('is_remote', $job->location?->is_remote))>
-                    <label class="form-check-label" for="is_remote">Remote position (used when no location is selected)</label>
-                </div>
+                <div class="form-text">Pick one, or type a new one as "City, Country". Remote jobs can leave this empty.</div>
             </div>
         </div>
 
         <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <label for="work_arrangement" class="form-label">Work arrangement <span class="text-danger">*</span></label>
+                <select class="form-select @error('work_arrangement') is-invalid @enderror" id="work_arrangement" name="work_arrangement" required>
+                    @foreach(\App\Models\JobPosting::WORK_ARRANGEMENTS as $value => $label)
+                        <option value="{{ $value }}" @selected(old('work_arrangement', $job->work_arrangement ?? 'on_site') === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+                @error('work_arrangement')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="col-md-4">
                 <label for="employment_type" class="form-label">Employment type <span class="text-danger">*</span></label>
                 <select class="form-select @error('employment_type') is-invalid @enderror" id="employment_type" name="employment_type" required>
                     <option value="">Select type</option>
@@ -77,7 +80,7 @@
                 </select>
                 @error('employment_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label for="experience_level" class="form-label">Experience level <span class="text-danger">*</span></label>
                 <select class="form-select @error('experience_level') is-invalid @enderror" id="experience_level" name="experience_level" required>
                     <option value="">Select level</option>
@@ -148,6 +151,42 @@
             </div>
         @endforeach
         <div class="form-text">Use the toolbar for bold, italics, headings, lists and links. Pasted formatting is cleaned up on save.</div>
+    </div>
+</div>
+
+@php
+    $screenerRows = old('screener_questions', $job->exists
+        ? $job->screenerQuestions->map(fn ($q) => [
+            'question' => $q->question,
+            'importance' => $q->importance,
+            'required_answer' => (int) $q->required_answer,
+        ])->all()
+        : []);
+@endphp
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Screener questions</h5>
+        <button type="button" class="btn btn-sm btn-outline-secondary js-add-screener">
+            <i class="bi bi-plus-circle me-1"></i> Add question
+        </button>
+    </div>
+    <div class="card-body">
+        <p class="form-text mt-0">
+            Yes/No questions every applicant answers. Applicants who miss an <strong>Essential</strong> question are ranked
+            Not fit; <strong>Preferred</strong> questions decide between Top fit, Fit and Suitable.
+        </p>
+        @error('screener_questions')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
+        <div class="js-screener-rows">
+            @foreach($screenerRows as $i => $row)
+                @include('admin.jobs._screener_row', ['index' => $i, 'row' => $row])
+            @endforeach
+        </div>
+        <p class="text-muted small mb-0 js-screener-empty" @if(count($screenerRows)) hidden @endif>
+            No screener questions yet. Applications for this job won't be ranked.
+        </p>
+        <template id="screener-row-template">
+            @include('admin.jobs._screener_row', ['index' => '__INDEX__', 'row' => []])
+        </template>
     </div>
 </div>
 

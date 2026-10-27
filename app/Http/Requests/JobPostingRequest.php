@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\JobCategory;
 use App\Models\JobLocation;
 use App\Models\JobPosting;
+use App\Models\JobScreenerQuestion;
 use App\Support\RichText;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -15,6 +16,8 @@ class JobPostingRequest extends FormRequest
     public const NEW_PREFIX = 'new:';
 
     public const RICH_TEXT_FIELDS = ['description', 'responsibilities', 'requirements', 'benefits'];
+
+    public const MAX_SCREENER_QUESTIONS = 20;
 
     public function authorize(): bool
     {
@@ -27,8 +30,16 @@ class JobPostingRequest extends FormRequest
         $this->merge([
             'is_featured' => $this->boolean('is_featured'),
             'is_published' => $this->boolean('is_published'),
-            'is_remote' => $this->boolean('is_remote'),
+            'is_remote' => $this->input('work_arrangement') === 'remote',
         ]);
+
+        // A blank row left in the form is "no question", not a validation error.
+        if (is_array($this->input('screener_questions'))) {
+            $this->merge(['screener_questions' => array_values(array_filter(
+                $this->input('screener_questions'),
+                fn ($row) => is_array($row) && trim((string) ($row['question'] ?? '')) !== ''
+            ))]);
+        }
 
         // Sanitize editor HTML before validating, so an editor left blank ("<div><br></div>") fails "required".
         foreach (self::RICH_TEXT_FIELDS as $field) {
@@ -69,7 +80,12 @@ class JobPostingRequest extends FormRequest
                     $fail('The selected location is invalid.');
                 }
             }],
+            'work_arrangement' => ['required', Rule::in(array_keys(JobPosting::WORK_ARRANGEMENTS))],
             'is_remote' => ['boolean'],
+            'screener_questions' => ['nullable', 'array', 'max:' . self::MAX_SCREENER_QUESTIONS],
+            'screener_questions.*.question' => ['required', 'string', 'max:255'],
+            'screener_questions.*.importance' => ['required', Rule::in(array_keys(JobScreenerQuestion::IMPORTANCE))],
+            'screener_questions.*.required_answer' => ['required', 'boolean'],
             'description' => ['required', 'string', 'max:20000'],
             'requirements' => ['required', 'string', 'max:20000'],
             'responsibilities' => ['required', 'string', 'max:20000'],
@@ -92,6 +108,8 @@ class JobPostingRequest extends FormRequest
             'application_deadline.after_or_equal' => 'The application deadline cannot be in the past for a published or new job.',
             'salary_max.gte' => 'The maximum salary must be at least the minimum salary.',
             'salary_period.required_with' => 'Choose a salary period when a salary is given.',
+            'screener_questions.max' => 'A job can have up to ' . self::MAX_SCREENER_QUESTIONS . ' screener questions.',
+            'screener_questions.*.question.max' => 'Keep each screener question under 255 characters.',
         ];
     }
 

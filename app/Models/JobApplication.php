@@ -2,13 +2,42 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class JobApplication extends Model
 {
     use HasFactory;
+
+    public const STATUSES = [
+        'submitted', 'under_review', 'interview_scheduled', 'interviewed', 'shortlisted',
+        'rejected', 'offer_made', 'offer_accepted', 'offer_declined', 'hired',
+    ];
+
+    public const AVAILABILITY = [
+        'immediately' => 'Immediately',
+        '2_weeks' => '2 weeks',
+        '30_days' => '30 days',
+        '60_days' => '60 days',
+        'other' => 'Other',
+    ];
+
+    public const WORK_AUTHORIZATION = [
+        'us_citizen' => 'U.S. Citizen',
+        'permanent_resident' => 'Permanent Resident',
+        'employment_visa' => 'Employment Visa',
+    ];
+
+    // Best first; the order also drives sorting on the Applicants page.
+    public const RANKS = [
+        'top_fit' => 'Top fit',
+        'fit' => 'Fit',
+        'suitable' => 'Suitable',
+        'not_fit' => 'Not fit',
+    ];
 
     protected $fillable = [
         'job_posting_id',
@@ -17,8 +46,15 @@ class JobApplication extends Model
         'last_name',
         'email',
         'phone',
+        'current_location',
         'cover_letter',
+        'cover_letter_path',
         'resume_path',
+        'reason_for_leaving',
+        'availability',
+        'availability_other',
+        'work_authorization',
+        'willing_to_relocate',
         'portfolio_url',
         'linkedin_url',
         'github_url',
@@ -44,7 +80,80 @@ class JobApplication extends Model
         'expected_salary' => 'decimal:2',
         'years_of_experience' => 'integer',
         'reviewed_at' => 'datetime',
+        'willing_to_relocate' => 'boolean',
     ];
+
+    public static function disk(): Filesystem
+    {
+        return Storage::disk(config('filesystems.uploads'));
+    }
+
+    // Top fit: all met. Fit: all Essential + half the Preferred. Suitable: all Essential. Not fit: an Essential missed.
+    public static function rankFor(iterable $answers): ?string
+    {
+        $answers = collect($answers);
+
+        if ($answers->isEmpty()) {
+            return null;
+        }
+
+        if ($answers->where('importance', 'essential')->contains(fn ($answer) => ! $answer->isMet())) {
+            return 'not_fit';
+        }
+
+        $preferred = $answers->where('importance', 'preferred');
+        $met = $preferred->filter(fn ($answer) => $answer->isMet())->count();
+
+        if ($met === $preferred->count()) {
+            return 'top_fit';
+        }
+
+        return $met * 2 >= $preferred->count() ? 'fit' : 'suitable';
+    }
+
+    public function getRankLabelAttribute(): ?string
+    {
+        return self::RANKS[$this->screener_rank] ?? null;
+    }
+
+    public function getAvailabilityLabelAttribute(): ?string
+    {
+        if ($this->availability === 'other') {
+            return $this->availability_other ?: 'Other';
+        }
+
+        return self::AVAILABILITY[$this->availability] ?? null;
+    }
+
+    public function getWorkAuthorizationLabelAttribute(): ?string
+    {
+        return self::WORK_AUTHORIZATION[$this->work_authorization] ?? null;
+    }
+
+    public function attachments()
+    {
+        return $this->hasMany(JobApplicationAttachment::class)->orderBy('id');
+    }
+
+    public function screenerAnswers()
+    {
+        return $this->hasMany(JobApplicationScreenerAnswer::class)->orderBy('id');
+    }
+
+    public function interviews()
+    {
+        return $this->hasMany(Interview::class)->orderBy('scheduled_at');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(ApplicantMessage::class)->latest();
+    }
+
+    public function onboardingCompletions()
+    {
+        return $this->hasMany(OnboardingTaskCompletion::class);
+    }
 
     /**
      * `reference` is intentionally absent from $fillable — it identifies the

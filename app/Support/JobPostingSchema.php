@@ -122,18 +122,18 @@ class JobPostingSchema
     {
         $location = $job->location;
 
-        if (! $location) {
-            return [];
-        }
-
-        if ($location->is_remote) {
+        if ($job->work_arrangement === 'remote' || $location?->is_remote) {
             return [
                 'jobLocationType' => 'TELECOMMUTE',
                 'applicantLocationRequirements' => [
                     '@type' => 'Country',
-                    'name' => $location->country ?: 'USA',
+                    'name' => $location?->country ?: 'USA',
                 ],
             ];
+        }
+
+        if (! $location) {
+            return [];
         }
 
         $address = array_filter([

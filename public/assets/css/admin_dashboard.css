@@ -243,3 +243,51 @@ body {
 
 
 }
+
+.rank-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.rank-top_fit { background-color: #d4f8e9; color: #0b7a58; }
+.rank-fit { background-color: #e3f0ff; color: #1c64c4; }
+.rank-suitable { background-color: #fff5d6; color: #8a5800; }
+.rank-not_fit { background-color: #fde7e7; color: #c92a2a; }
+.rank-none { background-color: #f1f3f5; color: #6c757d; }
+
+.notification-menu {
+    min-width: 320px;
+    max-width: 360px;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    white-space: normal;
+}
+
+.notification-item.is-unread {
+    background-color: #fff7ec;
+    font-weight: 600;
+}
+
+.notification-item small {
+    font-weight: 400;
+}
+
+.detail-list dt {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gst-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.detail-list dd {
+    margin-bottom: 0.9rem;
+    overflow-wrap: anywhere;
+}

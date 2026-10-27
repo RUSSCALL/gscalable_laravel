@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\JobAlertController;
 use App\Http\Controllers\JobApplicantController;
@@ -69,6 +70,38 @@ Route::middleware(['auth' , 'verified' , 'can:user-is-admin'])->group(function()
 
     // Job alerts: read-only list plus ?export=csv.
     Route::get('/admin/job-alerts', [AdminController::class, 'jobAlerts'])->name('admin.job-alerts');
+
+    Route::get('/admin/applicants', [Admin\ApplicantController::class, 'index'])->name('admin.applicants.index');
+    Route::get('/admin/applicants/{application}', [Admin\ApplicantController::class, 'show'])->name('admin.applicants.show');
+    Route::put('/admin/applicants/{application}/status', [Admin\ApplicantController::class, 'updateStatus'])->name('admin.applicants.status');
+    // {file} is "resume", "cover-letter" or an attachment id; files are private and only ever served through here.
+    Route::get('/admin/applicants/{application}/download/{file}', [Admin\ApplicantController::class, 'download'])
+        ->where('file', 'resume|cover-letter|[0-9]+')
+        ->name('admin.applicants.download');
+
+    Route::get('/admin/messages', [Admin\MessageController::class, 'index'])->name('admin.messages.index');
+    Route::post('/admin/applicants/{application}/messages', [Admin\MessageController::class, 'store'])->name('admin.messages.store');
+
+    Route::get('/admin/interviews', [Admin\InterviewController::class, 'index'])->name('admin.interviews.index');
+    Route::post('/admin/interviews', [Admin\InterviewController::class, 'store'])->name('admin.interviews.store');
+    Route::put('/admin/interviews/{interview}', [Admin\InterviewController::class, 'update'])->name('admin.interviews.update');
+
+    Route::get('/admin/onboarding', [Admin\OnboardingController::class, 'index'])->name('admin.onboarding.index');
+    Route::put('/admin/onboarding/{application}/{task}', [Admin\OnboardingController::class, 'toggle'])->name('admin.onboarding.toggle');
+
+    Route::get('/admin/reports', [Admin\ReportController::class, 'index'])->name('admin.reports.index');
+
+    Route::get('/admin/settings', [Admin\SettingsController::class, 'edit'])->name('admin.settings');
+    Route::put('/admin/settings', [Admin\SettingsController::class, 'update'])->name('admin.settings.update');
+
+    Route::get('/admin/profile', [Admin\ProfileController::class, 'edit'])->name('admin.profile');
+    Route::put('/admin/profile', [Admin\ProfileController::class, 'update'])->name('admin.profile.update');
+    Route::put('/admin/profile/password', [Admin\ProfileController::class, 'updatePassword'])->name('admin.profile.password');
+
+    Route::get('/admin/notifications', [Admin\NotificationController::class, 'index'])->name('admin.notifications.index');
+    Route::post('/admin/notifications/read-all', [Admin\NotificationController::class, 'readAll'])->name('admin.notifications.read-all');
+    Route::post('/admin/notifications/{notification}/open', [Admin\NotificationController::class, 'open'])->name('admin.notifications.open');
+    Route::delete('/admin/notifications', [Admin\NotificationController::class, 'clear'])->name('admin.notifications.clear');
 
 });
 

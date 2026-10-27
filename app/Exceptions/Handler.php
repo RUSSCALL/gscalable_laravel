@@ -30,7 +30,7 @@ class Handler extends ExceptionHandler
 
         $this->renderable(function (PostTooLargeException $e, $request) {
             return redirect()->back()
-                ->withInput($request->except('resume_path'))
+                ->withInput($request->except(['resume_path', 'cover_letter_file', 'attachments']))
                 ->with('error', 'The uploaded file is too large. Maximum allowed size is ' . ini_get('upload_max_filesize') . '.');
         });
     }

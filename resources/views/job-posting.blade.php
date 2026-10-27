@@ -7,9 +7,7 @@
     $metaDescription = Str::limit(\App\Support\RichText::plain($job->description), 155);
     $canonical = route('careers.show', $job->slug);
 
-    $locationLabel = $job->location
-        ? ($job->location->is_remote ? 'Remote' : $job->location->city . ', ' . $job->location->country)
-        : 'Location flexible';
+    $locationLabel = $job->location_label;
 
     // Send the visitor back where they actually came from. The referrer is
     // only ever compared against our own dashboard path and never used as the
@@ -57,6 +55,9 @@
                 <span class="job-pill job-pill--featured">Featured</span>
             @endif
             <span class="job-pill"><i class="bi bi-geo-alt"></i> {{ $locationLabel }}</span>
+            @unless($job->isRemote())
+                <span class="job-pill"><i class="bi bi-house-door"></i> {{ $job->work_arrangement_label }}</span>
+            @endunless
             <span class="job-pill"><i class="bi bi-briefcase"></i> {{ $job->employment_type }}</span>
             <span class="job-pill"><i class="bi bi-bar-chart"></i> {{ $job->experience_level }}</span>
             @if($job->category)
@@ -183,6 +184,10 @@
                                 <span class="job-fact-label">Location</span>
                                 <span class="job-fact-value">{{ $locationLabel }}</span>
                             </li>
+                            <li>
+                                <span class="job-fact-label">Work arrangement</span>
+                                <span class="job-fact-value">{{ $job->work_arrangement_label }}</span>
+                            </li>
                             @if($job->salary_min || $job->salary_max)
                                 <li>
                                     <span class="job-fact-label">Salary</span>
@@ -209,11 +214,7 @@
                                 <a href="{{ route('careers.show', $relatedJob->slug) }}" class="similar-role">
                                     <p class="similar-role-title">{{ $relatedJob->title }}</p>
                                     <p class="similar-role-meta">
-                                        @if($relatedJob->location)
-                                            {{ $relatedJob->location->is_remote ? 'Remote' : $relatedJob->location->city }}
-                                        @else
-                                            Location flexible
-                                        @endif
+                                        {{ $relatedJob->location_label }}
                                         &middot; {{ $relatedJob->employment_type }}
                                     </p>
                                 </a>

@@ -63,7 +63,7 @@ class AdminJobPostingTest extends TestCase
             'responsibilities' => 'Build things.',
             'benefits' => '',
             // What the form sends for unticked switches (hidden input).
-            'is_remote' => '0',
+            'work_arrangement' => 'on_site',
             'is_featured' => '0',
             'is_published' => '0',
         ], $overrides);
@@ -195,7 +195,7 @@ class AdminJobPostingTest extends TestCase
 
     public function test_remote_without_a_location_uses_the_remote_location(): void
     {
-        $payload = $this->payload(['is_remote' => '1']);
+        $payload = $this->payload(['work_arrangement' => 'remote']);
 
         $this->actingAs($this->admin())->post(route('jobs.store'), $payload)->assertSessionHasNoErrors();
 

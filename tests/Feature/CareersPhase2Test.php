@@ -11,6 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -23,6 +24,14 @@ use Tests\TestCase;
 class CareersPhase2Test extends TestCase
 {
     private array $created = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Keeps test applications from notifying the real admins in the seeded database.
+        Notification::fake();
+    }
 
     protected function tearDown(): void
     {
@@ -57,6 +66,10 @@ class CareersPhase2Test extends TestCase
             'last_name' => 'Rivera',
             'email' => $this->freshEmail('apply'),
             'phone' => '555-0142',
+            'current_location' => 'Baltimore, MD',
+            'availability' => '2_weeks',
+            'work_authorization' => 'us_citizen',
+            'willing_to_relocate' => '0',
             'education' => 'State University',
             'highest_degree' => "Bachelor's",
             'years_of_experience' => 5,
@@ -79,7 +92,7 @@ class CareersPhase2Test extends TestCase
     public function test_a_guest_can_submit_an_application_without_an_account(): void
     {
         Mail::fake();
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
 
         $job = $this->job();
         $payload = $this->payload();
@@ -100,7 +113,7 @@ class CareersPhase2Test extends TestCase
     public function test_every_application_gets_a_unique_opaque_reference(): void
     {
         Mail::fake();
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
 
         $job = $this->job();
         $payload = $this->payload();
@@ -118,7 +131,7 @@ class CareersPhase2Test extends TestCase
     public function test_the_reference_cannot_be_set_from_user_input(): void
     {
         Mail::fake();
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
 
         $job = $this->job();
         $payload = $this->payload(['reference' => 'GST-HACK-HACK']);
@@ -135,7 +148,7 @@ class CareersPhase2Test extends TestCase
 
     public function test_a_filled_honeypot_is_rejected_without_saving(): void
     {
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
         $job = $this->job();
         $payload = $this->payload(['website' => 'http://spam.example']);
 
@@ -148,7 +161,7 @@ class CareersPhase2Test extends TestCase
 
     public function test_an_instant_submission_is_rejected_without_saving(): void
     {
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
         $job = $this->job();
         $payload = $this->payload(['_ts' => Crypt::encryptString(time())]);
 
@@ -160,7 +173,7 @@ class CareersPhase2Test extends TestCase
 
     public function test_a_forged_timestamp_is_rejected(): void
     {
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
         $job = $this->job();
 
         // A plain integer, as a bot would send when guessing the field format.
@@ -173,7 +186,7 @@ class CareersPhase2Test extends TestCase
 
     public function test_a_rejected_bot_submission_never_receives_a_reference(): void
     {
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
         $job = $this->job();
         $payload = $this->payload(['website' => 'spam']);
 
@@ -191,7 +204,7 @@ class CareersPhase2Test extends TestCase
     public function test_the_same_email_cannot_apply_to_one_job_twice(): void
     {
         Mail::fake();
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
 
         $job = $this->job();
         $email = $this->freshEmail('dupe');
@@ -212,7 +225,7 @@ class CareersPhase2Test extends TestCase
     public function test_the_confirmation_page_shows_the_reference_after_applying(): void
     {
         Mail::fake();
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
 
         $job = $this->job();
         $payload = $this->payload();
@@ -242,7 +255,7 @@ class CareersPhase2Test extends TestCase
     public function test_claiming_creates_an_applicant_account_and_links_past_applications(): void
     {
         Mail::fake();
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
 
         $job = $this->job();
         $payload = $this->payload();
@@ -291,7 +304,7 @@ class CareersPhase2Test extends TestCase
     public function test_claiming_cannot_target_a_different_email_than_the_one_applied_with(): void
     {
         Mail::fake();
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
 
         $job = $this->job();
         $payload = $this->payload();
@@ -314,7 +327,7 @@ class CareersPhase2Test extends TestCase
     public function test_claiming_never_mutates_an_existing_account(): void
     {
         Mail::fake();
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
 
         // An existing user who applies again as a guest.
         $existing = User::create([
@@ -343,7 +356,7 @@ class CareersPhase2Test extends TestCase
     public function test_the_claim_offer_is_hidden_when_the_email_already_has_an_account(): void
     {
         Mail::fake();
-        Storage::fake('public');
+        Storage::fake(config('filesystems.uploads'));
 
         $existing = User::create([
             'name' => 'Known Person',

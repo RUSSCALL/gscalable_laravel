@@ -16,6 +16,9 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <form action="" method="GET" class="row g-3">
+                        @if($filter)
+                            <input type="hidden" name="filter" value="{{ $filter }}">
+                        @endif
                         <div class="col-md-3">
                             <label for="category" class="form-label">Category</label>
                             <select class="form-select" id="category" name="category">
@@ -63,19 +66,34 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">All Job Listings</h5>
-                    <div>
-                        <button class="btn btn-sm btn-outline-secondary me-2">
+                    @php
+                        $listingQuery = request()->except(['page', 'export']);
+                    @endphp
+                    <div class="d-flex align-items-center gap-2">
+                        @if($filter)
+                            <a href="{{ route('jobListings', \Illuminate\Support\Arr::except($listingQuery, 'filter')) }}"
+                               class="btn btn-sm btn-light border" title="Remove this filter">
+                                {{ \App\Http\Controllers\AdminController::LISTING_FILTERS[$filter] }} <i class="bi bi-x"></i>
+                            </a>
+                        @endif
+                        <a href="{{ route('jobListings', $listingQuery + ['export' => 'csv']) }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-download me-1"></i> Export
-                        </button>
+                        </a>
                         <div class="dropdown d-inline-block">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-funnel me-1"></i> Filter
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#">Featured Jobs</a></li>
-                                <li><a class="dropdown-item" href="#">Most Applications</a></li>
-                                <li><a class="dropdown-item" href="#">Recently Added</a></li>
-                                <li><a class="dropdown-item" href="#">Expiring Soon</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                @foreach(\App\Http\Controllers\AdminController::LISTING_FILTERS as $value => $label)
+                                    <li>
+                                        <a @class(['dropdown-item', 'active' => $filter === $value])
+                                           href="{{ route('jobListings', ['filter' => $value] + $listingQuery) }}">{{ $label }}</a>
+                                    </li>
+                                @endforeach
+                                @if($filter)
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ route('jobListings', \Illuminate\Support\Arr::except($listingQuery, 'filter')) }}">Show all</a></li>
+                                @endif
                             </ul>
                         </div>
                     </div>
@@ -108,12 +126,11 @@
                                     </td>
                                     <td>{{ $job->category->name ?? 'Uncategorized' }}</td>
                                     <td>
-                                        @if($job->location)
-                                            @if($job->location->is_remote)
-                                                <span class="badge bg-info">Remote</span>
-                                            @else
-                                                {{ $job->location->city }}, {{ $job->location->country }}
-                                            @endif
+                                        @if($job->work_arrangement === 'remote' || $job->location?->is_remote)
+                                            <span class="badge bg-info">Remote</span>
+                                        @elseif($job->location)
+                                            {{ $job->location->city }}, {{ $job->location->country }}
+                                            @if($job->work_arrangement === 'hybrid')<span class="badge bg-secondary ms-1">Hybrid</span>@endif
                                         @else
                                             --
                                         @endif
@@ -154,6 +171,9 @@
                                                 </a></li>
                                                 <li><a class="dropdown-item" href="{{ route('jobs.show', $job->id) }}">
                                                     <i class="bi bi-info-circle me-2"></i> Details
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="{{ route('admin.applicants.index', ['job' => $job->id]) }}">
+                                                    <i class="bi bi-people me-2"></i> View applications
                                                 </a></li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 @if($job->is_published)

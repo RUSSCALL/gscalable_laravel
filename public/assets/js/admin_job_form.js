@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     initPickers();
     initEditors();
+    initScreenerQuestions();
 });
 
 function initPickers() {
@@ -84,5 +85,35 @@ function initEditors() {
 
     document.addEventListener('trix-file-accept', function (e) {
         e.preventDefault();
+    });
+}
+
+function initScreenerQuestions() {
+    var rows = document.querySelector('.js-screener-rows');
+    var template = document.getElementById('screener-row-template');
+    var empty = document.querySelector('.js-screener-empty');
+    if (!rows || !template) {
+        return;
+    }
+
+    // Any unique index works: the server re-numbers rows on save.
+    var next = rows.children.length;
+
+    function syncEmpty() {
+        empty.hidden = rows.children.length > 0;
+    }
+
+    document.querySelector('.js-add-screener').addEventListener('click', function () {
+        rows.insertAdjacentHTML('beforeend', template.innerHTML.replace(/__INDEX__/g, 'n' + next++));
+        rows.lastElementChild.querySelector('input').focus();
+        syncEmpty();
+    });
+
+    rows.addEventListener('click', function (e) {
+        var remove = e.target.closest('.js-remove-screener');
+        if (remove) {
+            remove.closest('.js-screener-row').remove();
+            syncEmpty();
+        }
     });
 }
